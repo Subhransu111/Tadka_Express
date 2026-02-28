@@ -36,7 +36,12 @@ const UserSchema = new mongoose.Schema({
         street: { type: String, trim: true },
         landmark: { type: String, trim: true },
         pincode: { type: String, match: [/^\d{6}$/, 'Pincode must be exactly 6 digits'] }
-    }
+    },
+    referralCode: { type: String, unique: true }, 
+    referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    rewardPoints: { type: Number, default: 0 },
+    walletBalance: { type: Number, default: 0 }
+
     
 
 },{ timestamps: true })
