@@ -56,6 +56,19 @@ exports.getAdminDeliveryList = async (req, res) => {
     }
 };
 
+// @desc    Admin view: See only skipped meals for planning
+exports.getSkippedMeals = async (req, res) => {
+    try {
+        const queryDate = normalizeDate(req.params.date);
+        const skipped = await DailyOrder.find({ date: queryDate, isSkipped: true })
+            .populate('userId', 'name phone');
+        
+        res.status(200).json({ success: true, count: skipped.length, data: skipped });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 exports.getKitchenSummary = async (req, res) => {
   try {
     const queryDate = normalizeDate(req.params.date);

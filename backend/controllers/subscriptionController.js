@@ -1,5 +1,6 @@
 const Subscription = require('../models/Subscription')
 const Razorpay = require('razorpay');
+const crypto = require('crypto')
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -24,7 +25,7 @@ async function createSubscription(req, res){
 
         const order = await razorpay.orders.create(options);
 
-        const subscription = new Subscription({
+        const subscription = await Subscription.create({
             userId: req.user._id,
             planType,
             totalDays,
@@ -35,6 +36,7 @@ async function createSubscription(req, res){
             status: 'pending_payment'
 
         });
+
          res.status(201).json({ subscription, order });
     }
     catch(error){
@@ -44,3 +46,30 @@ async function createSubscription(req, res){
 };
 
 exports.createSubscription = createSubscription;
+
+async function verifyPayment(req,res) {
+        const {razorpay_order_id , razorpay_payment_id , razorpay_signature} = req.body
+
+        const dataToVerify = razorpay_order_id + "|" + razorpay_payment_id;
+        const generated_signature = crypto
+        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET) // Use the "Secret Sauce"
+        .update(dataToVerify.toString())
+        .digest("hex");
+
+    if (generated_signature === razorpay_signature) {
+        const subscription = await Subscription.findOneAndUpdate(
+            { razorpayOrderId: razorpay_order_id },
+            { status: 'active' },
+            { new: true }
+        );
+        res.status(200).json({ success: true, message: "Verification Successful", subscription });
+    } else {
+        res.status(400).json({ success: false, message: "Signature mismatch! Possible fraud detected." });
+    }
+}
+
+exports.verifyPayment = verifyPayment;
+        
+
+
+    
