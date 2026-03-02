@@ -1,0 +1,8 @@
+# API Keys and Secrets
+.env
+
+# Dependencies
+node_modules/
+
+# Build logs
+npm-debug.log*
