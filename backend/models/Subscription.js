@@ -33,9 +33,13 @@ const subscriptionSchema = new mongoose.Schema({
         type: Number,
         required: true  
     },
+    usedDays:{
+        type: Number,
+        default: 0
+    },
     status:{
         type: String,
-        enum: ['active', 'expired', 'pending_payment'],
+        enum: ['active', 'expired', 'pending_payment','cancelled'],
         default: 'pending_payment'
     },
 razorpayOrderId: { type: String }

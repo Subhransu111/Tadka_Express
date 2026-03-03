@@ -47,6 +47,34 @@ async function createSubscription(req, res){
 
 exports.createSubscription = createSubscription;
 
+// @desc    Cancel subscription (Stop future service)
+// @route   PUT /api/subscriptions/cancel/:id
+exports.cancelSubscription = async (req, res) => {
+    try {
+        const subscription = await Subscription.findById(req.params.id);
+
+        if (!subscription) {
+            return res.status(404).json({ success: false, message: "Subscription not found" });
+        }
+
+        // Verify ownership 
+        if (subscription.userId.toString() !== req.user._id.toString()) {
+            return res.status(401).json({ success: false, message: "Not authorized" });
+        }
+
+        // Update status
+        subscription.status = 'cancelled';
+        await subscription.save();
+
+        res.status(200).json({ 
+            success: true, 
+            message: "Subscription cancelled. Access will remain until the 15 days are completed." 
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 async function verifyPayment(req,res) {
         const {razorpay_order_id , razorpay_payment_id , razorpay_signature} = req.body
 
