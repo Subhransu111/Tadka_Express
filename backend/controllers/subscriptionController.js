@@ -2,10 +2,11 @@ const Subscription = require('../models/Subscription')
 const Razorpay = require('razorpay');
 const crypto = require('crypto')
 
-const razorpay = new Razorpay({
+/*const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
 });
+*/
 
 async function createSubscription(req, res){
     try{
@@ -23,7 +24,14 @@ async function createSubscription(req, res){
             receipt: `receipt_${Date.now()}`
         };
 
-        const order = await razorpay.orders.create(options);
+        // remove it
+        const mockOrder = {
+            id: `fake_order_${Date.now()}`,
+            amount: totalPrice * 100,
+            currency: 'INR'
+        };
+
+        /*const order = await Razorpay.orders.create(options);*/
 
         const subscription = await Subscription.create({
             userId: req.user._id,
@@ -32,12 +40,12 @@ async function createSubscription(req, res){
             startDate,
             pricePerDay,
             totalPrice,
-            razorpayOrderId: order.id,
+            razorpayOrderId: mockOrder.id,
             status: 'pending_payment'
 
         });
 
-         res.status(201).json({ subscription, order });
+         res.status(201).json({ subscription, order: mockOrder });
     }
     catch(error){
         res.status(500).json({ error: 'Failed to create subscription' });

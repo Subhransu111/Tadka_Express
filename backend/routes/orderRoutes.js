@@ -4,7 +4,7 @@ const {
     updateMealSection, 
     getAdminDeliveryList, 
     getKitchenSummary 
-} = require('../controllers/orderController');
+} = require('../controllers/orderControllers');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 router.patch('/select-meal', protect, updateMealSection);

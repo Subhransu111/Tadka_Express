@@ -8,8 +8,8 @@ const UserSchema = new mongoose.Schema({
     },
     email:{
         type:String,
-        required:true, 
-        unique:true,
+        required:false, 
+        unique:false,
         trim : true,
         lowercase:true,
         sparse:true
@@ -46,6 +46,6 @@ const UserSchema = new mongoose.Schema({
 
 },{ timestamps: true })
 
-UserSchema.index({phone: 1});
+
 
 module.exports = mongoose.model('User', UserSchema);
