@@ -39,7 +39,7 @@ async function createSubscription(req, res){
 
         // Parse and validate start date
         const parsedStartDate = new Date(startDate);
-        console.log('Parsed start date:', parsedStartDate);
+        
         
         if (isNaN(parsedStartDate.getTime())) {
             return res.status(400).json({ 
@@ -50,7 +50,7 @@ async function createSubscription(req, res){
         const pricePerDay = planType === 'basic' ? 90:130;
         const totalPrice = pricePerDay * totalDays;
 
-        console.log('Price calculation:', { pricePerDay, totalPrice, totalDays });
+        
 
         const options = {
             amount : totalPrice * 100,
@@ -67,16 +67,6 @@ async function createSubscription(req, res){
 
         /*const order = await Razorpay.orders.create(options);*/
 
-        console.log('Creating subscription with data:', {
-            userId: req.user._id,
-            planType,
-            totalDays,
-            startDate: parsedStartDate,
-            pricePerDay,
-            totalPrice,
-            razorpayOrderId: mockOrder.id,
-            status: 'pending_payment'
-        });
 
         const subscription = await Subscription.create({
             userId: req.user._id,
@@ -90,18 +80,11 @@ async function createSubscription(req, res){
 
         });
 
-        console.log('Subscription created successfully:', subscription);
-        console.log('=== END DEBUG ===\n');
+        
 
-         res.status(201).json({ subscription, order: mockOrder });
+        res.status(201).json({ subscription, order: mockOrder });
     }
     catch(error){
-        console.error('=== SUBSCRIPTION ERROR ===');
-        console.error('Error name:', error.name);
-        console.error('Error message:', error.message);
-        console.error('Error code:', error.code);
-        console.error('Error details:', error);
-        console.error('=== END ERROR ===\n');
         
         res.status(500).json({ 
             error: 'Failed to create subscription',
