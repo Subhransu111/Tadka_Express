@@ -45,14 +45,13 @@ const subscriptionSchema = new mongoose.Schema({
 razorpayOrderId: { type: String }
 }, { timestamps: true });
 
-subscriptionSchema.pre('save', function(next) {
+subscriptionSchema.pre('save', async function() {
   if (this.startDate && this.totalDays) {
     const start = new Date(this.startDate);
     const end = new Date(start);
     end.setDate(start.getDate() + this.totalDays);
     this.endDate = end;
   }
-  next();
 });
 
 module.exports = mongoose.model('Subscription', subscriptionSchema);

@@ -12,11 +12,45 @@ async function createSubscription(req, res){
     try{
         const { planType , totalDays , startDate } = req.body
 
+        // Log incoming data
+        console.log('=== SUBSCRIPTION CREATION DEBUG ===');
+        console.log('Incoming data:', { planType, totalDays, startDate });
+        console.log('req.user:', req.user);
+        console.log('req.user._id:', req.user ? req.user._id : 'NO USER');
+
+        // Validate required fields
+        if (!planType || !totalDays || !startDate) {
+            return res.status(400).json({ 
+                error: 'Missing required fields: planType, totalDays, startDate' 
+            });
+        }
+
+        // Validate plan type
+        if (!['basic', 'deluxe'].includes(planType)) {
+            return res.status(400).json({ 
+                error: 'Invalid planType. Must be "basic" or "deluxe"' 
+            });
+        }
+
+        // Validate total days
         if (totalDays < 15) {
             return res.status(400).json({ error: 'Total days must be at least 15' });
         }
+
+        // Parse and validate start date
+        const parsedStartDate = new Date(startDate);
+        console.log('Parsed start date:', parsedStartDate);
+        
+        if (isNaN(parsedStartDate.getTime())) {
+            return res.status(400).json({ 
+                error: 'Invalid startDate format. Use ISO format (e.g., 2026-03-04)' 
+            });
+        }
+
         const pricePerDay = planType === 'basic' ? 90:130;
         const totalPrice = pricePerDay * totalDays;
+
+        console.log('Price calculation:', { pricePerDay, totalPrice, totalDays });
 
         const options = {
             amount : totalPrice * 100,
@@ -33,11 +67,22 @@ async function createSubscription(req, res){
 
         /*const order = await Razorpay.orders.create(options);*/
 
+        console.log('Creating subscription with data:', {
+            userId: req.user._id,
+            planType,
+            totalDays,
+            startDate: parsedStartDate,
+            pricePerDay,
+            totalPrice,
+            razorpayOrderId: mockOrder.id,
+            status: 'pending_payment'
+        });
+
         const subscription = await Subscription.create({
             userId: req.user._id,
             planType,
             totalDays,
-            startDate,
+            startDate: parsedStartDate,
             pricePerDay,
             totalPrice,
             razorpayOrderId: mockOrder.id,
@@ -45,10 +90,23 @@ async function createSubscription(req, res){
 
         });
 
+        console.log('Subscription created successfully:', subscription);
+        console.log('=== END DEBUG ===\n');
+
          res.status(201).json({ subscription, order: mockOrder });
     }
     catch(error){
-        res.status(500).json({ error: 'Failed to create subscription' });
+        console.error('=== SUBSCRIPTION ERROR ===');
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error code:', error.code);
+        console.error('Error details:', error);
+        console.error('=== END ERROR ===\n');
+        
+        res.status(500).json({ 
+            error: 'Failed to create subscription',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
 
     }
 };
