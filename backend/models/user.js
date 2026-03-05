@@ -27,6 +27,8 @@ const UserSchema = new mongoose.Schema({
         type:String,
         required:true
     },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
     role:{
         type:String,
         enum:['user','admin'],
@@ -40,7 +42,9 @@ const UserSchema = new mongoose.Schema({
     referralCode: { type: String, unique: true }, 
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     rewardPoints: { type: Number, default: 0 },
-    walletBalance: { type: Number, default: 0 }
+    walletBalance: { type: Number, default: 0 },
+    loginAttempts: { type: Number, default: 0 },
+    lockUntil: { type: Date }
 
     
 

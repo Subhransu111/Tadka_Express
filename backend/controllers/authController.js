@@ -62,22 +62,59 @@ exports.loginUser = async (req, res) => {
     try {
         const { phone, password } = req.body;
 
-        // Find user by phone
         const user = await User.findOne({ phone });
+        if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
 
-        // Check if user exists and password matches
-        if (user && (await bcrypt.compare(password, user.passwordHash))) {
-            res.json({
-                success: true,
-                _id: user._id,
-                name: user.name,
-                role: user.role, // Important for the Admin Dashboard feature
-                token: generateToken(user._id)
-            });
-        } else {
-            res.status(401).json({ success: false, message: 'Invalid phone or password' });
+        if (user.lockUntil && user.lockUntil > Date.now()) {
+        const remaining = Math.round((user.lockUntil - Date.now()) / 60000);
+        return res.status(429).json({ error: `Account locked. Try again in ${remaining} minutes.` });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+
+    if (!isMatch) {
+        user.loginAttempts += 1;
+        if (user.loginAttempts >= 5) {
+            user.lockUntil = Date.now() + 30 * 60 * 1000; 
+            user.loginAttempts = 0; 
         }
+        await user.save();
+        return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // Reset on success
+    user.loginAttempts = 0;
+    user.lockUntil = undefined;
+    await user.save();
+
+    res.json({
+        success: true,
+        _id: user._id,
+        name: user.name,
+        role: user.role, 
+        token: generateToken(user._id)
+    });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
+};
+
+
+exports.forgotPassword = async (req, res) => {
+    const user = await User.findOne({ phone: req.body.phone });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    
+    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // Expires in 10 mins
+
+    await user.save();
+
+    // In production, you would send this via SMS/WhatsApp
+    res.status(200).json({ 
+        success: true, 
+        message: "Reset token generated", 
+        token: resetToken 
+    });
 };

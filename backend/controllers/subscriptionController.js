@@ -12,12 +12,6 @@ async function createSubscription(req, res){
     try{
         const { planType , totalDays , startDate } = req.body
 
-        // Log incoming data
-        console.log('=== SUBSCRIPTION CREATION DEBUG ===');
-        console.log('Incoming data:', { planType, totalDays, startDate });
-        console.log('req.user:', req.user);
-        console.log('req.user._id:', req.user ? req.user._id : 'NO USER');
-
         // Validate required fields
         if (!planType || !totalDays || !startDate) {
             return res.status(400).json({ 
@@ -50,23 +44,19 @@ async function createSubscription(req, res){
         const pricePerDay = planType === 'basic' ? 90:130;
         const totalPrice = pricePerDay * totalDays;
 
-        
-
         const options = {
             amount : totalPrice * 100,
             currency: 'INR',
             receipt: `receipt_${Date.now()}`
         };
 
-        // remove it
         const mockOrder = {
             id: `fake_order_${Date.now()}`,
             amount: totalPrice * 100,
             currency: 'INR'
         };
 
-        /*const order = await Razorpay.orders.create(options);*/
-
+        // TODO: Integrate real Razorpay payment when service is active
 
         const subscription = await Subscription.create({
             userId: req.user._id,
