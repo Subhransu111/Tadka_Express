@@ -99,6 +99,38 @@ exports.loginUser = async (req, res) => {
     }
 };
 
+// @desc    Promote a user to Admin
+// @route   PATCH /api/auth/update-role
+exports.updateUserRole = async (req, res) => {
+    try {
+        const { phone, newRole } = req.body;
+
+        // 1. Validation: Ensure role is valid
+        if (!['user', 'admin'].includes(newRole)) {
+            return res.status(400).json({ success: false, message: "Invalid role type" });
+        }
+
+        
+        const user = await User.findOneAndUpdate(
+            { phone },
+            { role: newRole },
+            { new: true }
+        ).select('-passwordHash');
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: `User ${user.name} is now an ${newRole}`,
+            user
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 
 exports.forgotPassword = async (req, res) => {
     const user = await User.findOne({ phone: req.body.phone });
