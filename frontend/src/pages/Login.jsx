@@ -1,42 +1,108 @@
-function Login() {
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import bgImage from "../assets/bg-food.jpg";
+
+export default function Login() {
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ phone: "", password: "" });
+
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Login:", form);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#fff6ee] to-[#ffe2c6] px-4">
-      
-      <div className="bg-white shadow-2xl rounded-3xl p-10 w-full max-w-md">
-        
-        <h2 className="text-3xl font-bold text-center text-gray-800">
-          Welcome Back
-        </h2>
+    <div className="relative min-h-screen w-full flex flex-col overflow-hidden font-sans">
+      {/* Dark base */}
+      <div className="absolute inset-0 bg-[#1a1a1a]" />
 
-        <p className="text-center text-gray-500 mt-2">
-          Login to continue your meal subscription
-        </p>
+      {/* Background image with low opacity */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(${bgImage})`, opacity: 0.18 }}
+      />
 
-        <form className="mt-8 space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
-          />
+      {/* Logo */}
+      <div className="relative z-10 px-8 pt-6">
+        <h1 className="text-3xl font-extrabold tracking-wide">
+          <span className="text-white font-irish">TADKA </span>
+          <span className="text-orange-500 font-irish">EXPRESS</span>
+        </h1>
+        {/* Golden brush-stroke underline */}
+        <svg width="155" height="14" viewBox="0 0 155 14" className="mt-1" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 10 C18 5, 38 12, 58 8 C78 4, 98 11, 118 7 C132 4, 144 9, 153 7" stroke="#c8a800" strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M4 11 C22 7, 42 13, 62 9 C82 5, 102 12, 122 8 C135 5, 146 10, 153 8" stroke="#c8a800" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeOpacity="0.45"/>
+        </svg>
+      </div>
 
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
-          />
+      {/* Card */}
+      <div className="relative z-10 flex flex-1 items-center justify-center py-10">
+        <div
+          className="w-full max-w-md rounded-xl px-10 py-10"
+          style={{ background: "rgba(55,50,45,0.92)" }}
+        >
+          <h2
+            className="text-center text-3xl font-extrabold text-white mb-8 font-irish"
+            style={{ letterSpacing: "0.2em" }}
+          >
+            LOGIN
+          </h2>
 
-          <button className="w-full bg-orange-500 text-white py-3 rounded-xl shadow-lg hover:scale-105 transition">
-            Login
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-white font-irish text-sm mb-1">Phone Number</label>
+              <input
+                type="tel"
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                className="w-full rounded-lg px-4 py-3 text-gray-800 text-sm outline-none focus:ring-2 focus:ring-orange-500"
+                style={{ background: "#d6cfc7" }}
+              />
+            </div>
 
-        <p className="text-center text-sm mt-6 text-gray-500">
-          Don’t have an account? Register
-        </p>
+            <div>
+              <label className="block text-white font-irish text-sm mb-1">Password</label>
+              <input
+                type="password"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                className="w-full rounded-lg px-4 py-3 text-gray-800 text-sm outline-none focus:ring-2 focus:ring-orange-500"
+                style={{ background: "#d6cfc7" }}
+              />
+              <div className="text-right mt-1">
+                <button type="button" className="text-orange-400 text-xs hover:underline">
+                  Forgot Password?
+                </button>
+              </div>
+            </div>
 
+            <div className="pt-2">
+              <button
+                type="submit"
+                className="w-full rounded-full py-3 text-white font-extrabold text-lg tracking-widest transition-all duration-200 hover:brightness-110 active:scale-95"
+                style={{ background: "linear-gradient(135deg, #ff6a00, #e65c00)", letterSpacing: "0.15em" }}
+              >
+                LOGIN
+              </button>
+            </div>
+          </form>
+
+          <p className="text-center text-white text-sm mt-5">
+            New to Tadka Express?{" "}
+            <button
+              onClick={() => navigate("/register")}
+              className="text-orange-400 font-semibold hover:underline"
+            >
+              Sign up
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );
 }
-
-export default Login;

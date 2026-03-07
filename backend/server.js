@@ -4,6 +4,7 @@ const express = require('express');
 const connectDb = require('./config/db'); 
 
 const app = express();
+app.use(corsOptions);
 app.use(helmet());
 
 if (process.env.NODE_ENV === 'production') {
@@ -17,7 +18,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 app.use('/api', globalLimiter);
 app.use('/api/auth', authLimiter);
-app.use(corsOptions);
+
 app.use(express.json({ limit: '10kb' }));
 
 
