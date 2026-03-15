@@ -2,6 +2,8 @@ const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const Subscription = require('../models/Subscription');
+const DailyOrder = require('../models/DailyOrder');
 
 // Helper to generate JWT
 const generateToken = (id) => {
@@ -49,6 +51,7 @@ exports.registerUser = async (req, res) => {
             success: true,
             _id: user._id,
             name: user.name,
+            role: user.role,
             token: generateToken(user._id)
         });
     } catch (error) {
@@ -66,34 +69,34 @@ exports.loginUser = async (req, res) => {
         if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
 
         if (user.lockUntil && user.lockUntil > Date.now()) {
-        const remaining = Math.round((user.lockUntil - Date.now()) / 60000);
-        return res.status(429).json({ error: `Account locked. Try again in ${remaining} minutes.` });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.passwordHash);
-
-    if (!isMatch) {
-        user.loginAttempts += 1;
-        if (user.loginAttempts >= 5) {
-            user.lockUntil = Date.now() + 30 * 60 * 1000; 
-            user.loginAttempts = 0; 
+            const remaining = Math.round((user.lockUntil - Date.now()) / 60000);
+            return res.status(429).json({ error: `Account locked. Try again in ${remaining} minutes.` });
         }
+
+        const isMatch = await bcrypt.compare(password, user.passwordHash);
+
+        if (!isMatch) {
+            user.loginAttempts += 1;
+            if (user.loginAttempts >= 5) {
+                user.lockUntil = Date.now() + 30 * 60 * 1000;
+                user.loginAttempts = 0;
+            }
+            await user.save();
+            return res.status(401).json({ error: "Invalid credentials" });
+        }
+
+        // Reset on success
+        user.loginAttempts = 0;
+        user.lockUntil = undefined;
         await user.save();
-        return res.status(401).json({ error: "Invalid credentials" });
-    }
 
-    // Reset on success
-    user.loginAttempts = 0;
-    user.lockUntil = undefined;
-    await user.save();
-
-    res.json({
-        success: true,
-        _id: user._id,
-        name: user.name,
-        role: user.role, 
-        token: generateToken(user._id)
-    });
+        res.json({
+            success: true,
+            _id: user._id,
+            name: user.name,
+            role: user.role,
+            token: generateToken(user._id)
+        });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
@@ -110,7 +113,7 @@ exports.updateUserRole = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid role type" });
         }
 
-        
+
         const user = await User.findOneAndUpdate(
             { phone },
             { role: newRole },
@@ -137,16 +140,74 @@ exports.forgotPassword = async (req, res) => {
     if (!user) return res.status(404).json({ error: "User not found" });
 
     const resetToken = crypto.randomBytes(20).toString('hex');
-    
+
     user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
     user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // Expires in 10 mins
 
     await user.save();
 
     // In production, you would send this via SMS/WhatsApp
-    res.status(200).json({ 
-        success: true, 
-        message: "Reset token generated", 
-        token: resetToken 
+    res.status(200).json({
+        success: true,
+        message: "Reset token generated",
+        token: resetToken
     });
+};
+
+// @desc    Get aggregated dashboard data for the user
+// @route   GET /api/auth/dashboard
+// @access  Private
+exports.getUserDashboardData = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // 1. Get User Profile Data
+        const user = await User.findById(userId).select('name phone rewardPoints walletBalance');
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // 2. Get Active Subscription
+        const activeSubscription = await Subscription.findOne({
+            userId: userId,
+            status: 'active',
+            endDate: { $gte: new Date() } // Ensures it hasn't expired
+        }).sort({ createdAt: -1 });
+
+        // 3. Get Recent Orders (last 5)
+        const recentOrders = await DailyOrder.find({ userId: userId })
+            .sort({ date: -1 })
+            .limit(5)
+            .select('date planType selectedItem isSkipped deliveryStatus');
+
+        // 4. Calculate total orders count
+        const totalOrdersCount = await DailyOrder.countDocuments({
+            userId: userId,
+            deliveryStatus: 'delivered'
+        });
+
+        // 5. Calculate "this week" change (mocked as +5 for now, or calculate based on date)
+        const weeklyOrders = await DailyOrder.countDocuments({
+            userId: userId,
+            deliveryStatus: 'delivered',
+            date: { $gte: new Date(new Date().setDate(new Date().getDate() - 7)) }
+        });
+
+        res.status(200).json({
+            success: true,
+            data: {
+                profile: user,
+                stats: {
+                    totalOrders: totalOrdersCount,
+                    weeklyOrdersChange: weeklyOrders
+                },
+                subscription: activeSubscription,
+                recentOrders: recentOrders
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
 };
