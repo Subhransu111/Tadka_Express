@@ -14,7 +14,7 @@ const generateToken = (id) => {
 // @route   POST /api/auth/register
 exports.registerUser = async (req, res) => {
     try {
-        const { name, phone, password, referredByCode } = req.body;
+        const { name, phone, email, password, referredByCode, address } = req.body;
 
         // 1. Check if user already exists
         const userExists = await User.findOne({ phone });
@@ -42,9 +42,11 @@ exports.registerUser = async (req, res) => {
         const user = await User.create({
             name,
             phone,
+            email: email || undefined,
             passwordHash: hashedPassword,
             referralCode: myReferralCode,
-            referredBy: referrerId
+            referredBy: referrerId,
+            address: address || {}
         });
 
         res.status(201).json({
@@ -52,6 +54,7 @@ exports.registerUser = async (req, res) => {
             _id: user._id,
             name: user.name,
             role: user.role,
+            referralCode: user.referralCode,
             token: generateToken(user._id)
         });
     } catch (error) {
@@ -95,6 +98,7 @@ exports.loginUser = async (req, res) => {
             _id: user._id,
             name: user.name,
             role: user.role,
+            referralCode: user.referralCode,
             token: generateToken(user._id)
         });
     } catch (error) {
@@ -162,7 +166,7 @@ exports.getUserDashboardData = async (req, res) => {
         const userId = req.user._id;
 
         // 1. Get User Profile Data
-        const user = await User.findById(userId).select('name phone rewardPoints walletBalance');
+        const user = await User.findById(userId).select('name phone email address rewardPoints referralCode');
 
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });

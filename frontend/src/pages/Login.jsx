@@ -36,7 +36,8 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify({
         _id: data._id,
         name: data.name,
-        role: data.role
+        role: data.role,
+        referralCode: data.referralCode,
       }));
 
       if (data.role === "admin") {

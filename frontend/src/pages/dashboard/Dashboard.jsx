@@ -1,12 +1,13 @@
 import { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { ThemeContext } from "../../context/ThemeContext";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import axios from "axios";
 import {
-    ShoppingBag, CalendarCheck, Wallet, Star,
+    ShoppingBag, CalendarCheck, Star,
     ArrowRight, UtensilsCrossed, Users, TrendingUp,
     Clock, ChefHat, Bike, CheckCircle2, Package,
-    Zap, Flame, Sparkles
+    Zap, Flame, Gift
 } from "lucide-react";
 
 function StatusBadge({ status, dark }) {
@@ -26,16 +27,18 @@ function StatusBadge({ status, dark }) {
     );
 }
 
-function StatCard({ label, value, change, icon: Icon, gradient, lightBg, darkBg, lightText, darkText, dark }) {
+function StatCard({ label, value, change, icon: Icon, gradient, lightBg, darkBg, lightText, darkText, dark, onClick }) {
     return (
-        <div className={`
-            relative overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1
-            ${dark
-                ? "bg-[#181818] border border-white/[0.07] shadow-xl shadow-black/50"
-                : "bg-white border border-gray-100/80 shadow-lg shadow-gray-200/70"
-            }
-        `}>
-            {/* Curved blob accent */}
+        <div
+            onClick={onClick}
+            className={`
+                relative overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1
+                ${onClick ? "cursor-pointer" : ""}
+                ${dark
+                    ? "bg-[#181818] border border-white/[0.07] shadow-xl shadow-black/50"
+                    : "bg-white border border-gray-100/80 shadow-lg shadow-gray-200/70"
+                }
+            `}>
             <div className={`absolute -top-8 -right-8 w-28 h-28 rounded-full blur-2xl opacity-15 ${gradient}`} />
             <div className={`absolute top-0 right-0 w-14 h-14 rounded-bl-[2.5rem] opacity-[0.08] ${gradient}`} />
             <div className="relative">
@@ -54,17 +57,23 @@ function StatCard({ label, value, change, icon: Icon, gradient, lightBg, darkBg,
 
 export default function Dashboard() {
     const { dark } = useContext(ThemeContext);
+    const navigate = useNavigate();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
     const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
     const displayName = storedUser?.name?.split(" ")[0] || "there";
     const fullName = storedUser?.name || "User";
+
+    // ── Fix 1: Proper time-based greeting ──
     const hour = new Date().getHours();
-    const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+    const greeting =
+        hour >= 5  && hour < 12 ? "Good morning" :
+        hour >= 12 && hour < 17 ? "Good afternoon" :
+        "Good evening";
 
     useEffect(() => {
-        const fetch = async () => {
+        const fetchData = async () => {
             try {
                 const token = localStorage.getItem("token");
                 if (!token) throw new Error("No token");
@@ -74,13 +83,16 @@ export default function Dashboard() {
                 setData(res.data.data);
             } catch {
                 setData({
-                    profile: { name: fullName, walletBalance: 0, rewardPoints: 0 },
+                    profile: { name: fullName, rewardPoints: 0 },
                     stats: { totalOrders: 0, weeklyOrdersChange: 0 },
-                    subscription: null, recentOrders: []
+                    subscription: null,
+                    recentOrders: []
                 });
-            } finally { setLoading(false); }
+            } finally {
+                setLoading(false);
+            }
         };
-        fetch();
+        fetchData();
     }, []);
 
     if (loading) return (
@@ -95,21 +107,82 @@ export default function Dashboard() {
     );
 
     const stats = [
-        { label: "Total Orders",   value: data?.stats?.totalOrders ?? 0,  change: `+${data?.stats?.weeklyOrdersChange ?? 0} this week`, icon: ShoppingBag, gradient: "bg-orange-500", lightBg: "bg-orange-50",  darkBg: "bg-orange-500/10",  lightText: "text-orange-500",  darkText: "text-orange-400" },
-        { label: "Active Plan",    value: data?.subscription?.planType ? data.subscription.planType.charAt(0).toUpperCase() + data.subscription.planType.slice(1) : "None", change: data?.subscription ? `${(data.subscription.totalDays ?? 0) - (data.subscription.usedDays ?? 0)} meals left` : "No active plan", icon: CalendarCheck, gradient: "bg-violet-500", lightBg: "bg-violet-50", darkBg: "bg-violet-500/10", lightText: "text-violet-600", darkText: "text-violet-400" },
-        { label: "Wallet Balance", value: `₹${data?.profile?.walletBalance ?? 0}`, change: "Available to use", icon: Wallet,  gradient: "bg-sky-500",    lightBg: "bg-sky-50",    darkBg: "bg-sky-500/10",    lightText: "text-sky-600",    darkText: "text-sky-400" },
-        { label: "Reward Points",  value: data?.profile?.rewardPoints ?? 0,         change: "Redeem on orders", icon: Star,    gradient: "bg-amber-500",  lightBg: "bg-amber-50",  darkBg: "bg-amber-500/10",  lightText: "text-amber-600",  darkText: "text-amber-400" },
+        {
+            label: "Total Orders",
+            value: data?.stats?.totalOrders ?? 0,
+            change: `+${data?.stats?.weeklyOrdersChange ?? 0} this week`,
+            icon: ShoppingBag,
+            gradient: "bg-orange-500", lightBg: "bg-orange-50", darkBg: "bg-orange-500/10",
+            lightText: "text-orange-500", darkText: "text-orange-400",
+            onClick: () => navigate("/dashboard/orders")
+        },
+        {
+            label: "Active Plan",
+            value: data?.subscription?.planType
+                ? data.subscription.planType.charAt(0).toUpperCase() + data.subscription.planType.slice(1)
+                : "None",
+            change: data?.subscription
+                ? `${(data.subscription.totalDays ?? 0) - (data.subscription.usedDays ?? 0)} meals left`
+                : "No active plan",
+            icon: CalendarCheck,
+            gradient: "bg-violet-500", lightBg: "bg-violet-50", darkBg: "bg-violet-500/10",
+            lightText: "text-violet-600", darkText: "text-violet-400",
+            onClick: () => navigate("/dashboard/subscription")
+        },
+        {
+            label: "Reward Points",
+            value: data?.profile?.rewardPoints ?? 0,
+            change: "Redeem on orders",
+            icon: Star,
+            gradient: "bg-amber-500", lightBg: "bg-amber-50", darkBg: "bg-amber-500/10",
+            lightText: "text-amber-600", darkText: "text-amber-400",
+            onClick: () => navigate("/dashboard/refer")
+        },
+        {
+            label: "Refer & Earn",
+            value: storedUser?.referralCode || "—",
+            change: "Share your code",
+            icon: Gift,
+            gradient: "bg-pink-500", lightBg: "bg-pink-50", darkBg: "bg-pink-500/10",
+            lightText: "text-pink-600", darkText: "text-pink-400",
+            onClick: () => navigate("/dashboard/refer")
+        },
     ];
 
     const quickActions = [
-        { label: "Order Now",     desc: "Browse today's menu", icon: ChefHat,         image: "https://images.unsplash.com/photo-1589302168068-964664d93cb0?q=80&w=400&auto=format&fit=crop" },
-        { label: "Track Order",   desc: "Real-time updates",   icon: Bike,            image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=400&auto=format&fit=crop" },
-        { label: "View Menu",     desc: "Explore cuisines",    icon: UtensilsCrossed, image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400&auto=format&fit=crop" },
-        { label: "Refer Friends", desc: "Earn ₹100 each",      icon: Users,           image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=400&auto=format&fit=crop" },
+        {
+            label: "Order Now",
+            desc: "Browse today's menu",
+            icon: ChefHat,
+            image: "https://images.unsplash.com/photo-1589302168068-964664d93cb0?q=80&w=400&auto=format&fit=crop",
+            path: "/dashboard/order"
+        },
+        {
+            label: "My Orders",
+            desc: "View order history",
+            icon: ShoppingBag,
+            image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=400&auto=format&fit=crop",
+            path: "/dashboard/orders"
+        },
+        {
+            label: "View Menu",
+            desc: "Explore cuisines",
+            icon: UtensilsCrossed,
+            image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400&auto=format&fit=crop",
+            path: "/dashboard/order"
+        },
+        {
+            label: "Refer Friends",
+            desc: "Earn reward points",   
+            icon: Users,
+            image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=400&auto=format&fit=crop",
+            path: "/dashboard/refer"
+        },
     ];
 
     const usedPct = data?.subscription
-        ? Math.round(((data.subscription.usedDays ?? 0) / (data.subscription.totalDays ?? 1)) * 100) : 0;
+        ? Math.round(((data.subscription.usedDays ?? 0) / (data.subscription.totalDays ?? 1)) * 100)
+        : 0;
 
     return (
         <DashboardLayout>
@@ -125,7 +198,6 @@ export default function Dashboard() {
                 <div className={`absolute inset-0 ${dark
                     ? "bg-gradient-to-r from-[#181818] via-[#181818]/96 to-[#181818]/55"
                     : "bg-gradient-to-r from-white via-white/96 to-white/55"}`} />
-                {/* Curved glows */}
                 <div className={`absolute -bottom-10 -right-10 w-72 h-72 rounded-full blur-3xl opacity-25 ${dark ? "bg-orange-600" : "bg-orange-300"}`} />
                 <div className={`absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-10 ${dark ? "bg-red-500" : "bg-red-200"}`} />
 
@@ -144,7 +216,9 @@ export default function Dashboard() {
                             Discover rich spices, authentic flavors, and the best meals delivered to your door.
                         </p>
                     </div>
-                    <button className="flex-shrink-0 flex items-center gap-2 px-6 py-3.5 rounded-2xl font-semibold text-sm text-white
+                    <button
+                        onClick={() => navigate("/dashboard/order")}
+                        className="flex-shrink-0 flex items-center gap-2 px-6 py-3.5 rounded-2xl font-semibold text-sm text-white
                         bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/30
                         hover:shadow-orange-500/50 hover:scale-105 transition-all duration-300">
                         <Zap className="w-4 h-4 fill-white" />
@@ -154,16 +228,16 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* ── Stats Grid ── */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
                 {stats.map((s) => <StatCard key={s.label} {...s} dark={dark} />)}
             </div>
 
-            {/* ── Quick Actions ── */}
             <div className="mb-7">
                 <div className="flex items-center justify-between mb-4 px-1">
                     <h3 className={`text-base font-semibold ${dark ? "text-white" : "text-gray-900"}`}>What are you craving?</h3>
-                    <button className={`text-xs font-medium flex items-center gap-1 ${dark ? "text-orange-400 hover:text-orange-300" : "text-orange-500 hover:text-orange-600"}`}>
+                    <button
+                        onClick={() => navigate("/dashboard/order")}
+                        className={`text-xs font-medium flex items-center gap-1 ${dark ? "text-orange-400 hover:text-orange-300" : "text-orange-500 hover:text-orange-600"}`}>
                         Explore Full Menu <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                 </div>
@@ -171,7 +245,9 @@ export default function Dashboard() {
                     {quickActions.map((action) => {
                         const Icon = action.icon;
                         return (
-                            <button key={action.label}
+                            <button
+                                key={action.label}
+                                onClick={() => navigate(action.path)}
                                 className="group relative overflow-hidden text-left rounded-2xl aspect-[4/3] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-black/25">
                                 <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
                                     style={{ backgroundImage: `url('${action.image}')` }} />
@@ -193,17 +269,20 @@ export default function Dashboard() {
             {/* ── Bottom Grid ── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-                {/* Recent Orders */}
                 <div className={`lg:col-span-2 rounded-2xl p-6
                     ${dark ? "bg-[#181818] border border-white/[0.07] shadow-xl shadow-black/40" : "bg-white border border-gray-100 shadow-lg shadow-gray-200/60"}`}>
                     <div className="flex items-center justify-between mb-5">
                         <h3 className={`text-base font-semibold ${dark ? "text-white" : "text-gray-900"}`}>Recent Orders</h3>
-                        <button className={`text-xs font-medium ${dark ? "text-orange-400" : "text-orange-500"}`}>View all</button>
+                        <button
+                            onClick={() => navigate("/dashboard/orders")}
+                            className={`text-xs font-medium ${dark ? "text-orange-400 hover:text-orange-300" : "text-orange-500 hover:text-orange-600"}`}>
+                            View all →
+                        </button>
                     </div>
                     <div className="space-y-2">
                         {data?.recentOrders?.length > 0 ? data.recentOrders.map((order, i) => (
                             <div key={order._id || i}
-                                className={`flex items-center gap-3 p-3.5 rounded-xl transition-colors
+                                className={`flex items-center gap-3 p-3.5 rounded-xl transition-colors cursor-pointer
                                     ${dark ? "hover:bg-white/[0.04] border border-white/[0.04]" : "hover:bg-orange-50/40 border border-transparent hover:border-orange-100"}`}>
                                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${dark ? "bg-orange-500/10" : "bg-orange-50"}`}>
                                     <UtensilsCrossed className="w-4 h-4 text-orange-500" />
@@ -229,7 +308,12 @@ export default function Dashboard() {
                                     <ShoppingBag className={`w-6 h-6 ${dark ? "text-gray-600" : "text-gray-300"}`} />
                                 </div>
                                 <p className={`text-sm font-medium mb-1 ${dark ? "text-gray-500" : "text-gray-400"}`}>No orders yet</p>
-                                <p className={`text-xs ${dark ? "text-gray-600" : "text-gray-300"}`}>Place your first order today</p>
+                                <p className={`text-xs mb-4 ${dark ? "text-gray-600" : "text-gray-300"}`}>Place your first order today</p>
+                                <button
+                                    onClick={() => navigate("/dashboard/order")}
+                                    className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-orange-500 hover:bg-orange-400 transition-colors">
+                                    Order Now
+                                </button>
                             </div>
                         )}
                     </div>
@@ -238,7 +322,6 @@ export default function Dashboard() {
                 {/* Subscription Card */}
                 <div className={`relative rounded-2xl overflow-hidden
                     ${dark ? "bg-[#181818] border border-white/[0.07] shadow-xl shadow-black/40" : "bg-white border border-gray-100 shadow-lg shadow-gray-200/60"}`}>
-                    {/* Top curve with gradient */}
                     <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-br from-orange-500 to-red-500 rounded-b-[3rem]" />
                     <div className="absolute top-0 left-0 right-0 h-28 bg-cover bg-center opacity-20 rounded-b-[3rem]"
                         style={{ backgroundImage: "url('https://images.unsplash.com/photo-1596797038530-2c107229654b?q=80&w=600&auto=format&fit=crop')" }} />
@@ -288,13 +371,16 @@ export default function Dashboard() {
                             </>
                         ) : (
                             <div className={`rounded-xl p-5 mb-4 text-center ${dark ? "bg-white/[0.04] border border-white/[0.06]" : "bg-gray-50 border border-gray-100"}`}>
-                                <Sparkles className={`w-8 h-8 mx-auto mb-2 ${dark ? "text-gray-600" : "text-gray-300"}`} />
+                                <span className="text-3xl mb-2 block">🍽️</span>
                                 <p className={`text-sm font-medium mb-1 ${dark ? "text-gray-400" : "text-gray-500"}`}>No active plan</p>
                                 <p className={`text-xs ${dark ? "text-gray-600" : "text-gray-400"}`}>Subscribe to unlock daily meals</p>
                             </div>
                         )}
 
-                        <button className="w-full py-3 rounded-xl font-semibold text-sm text-white
+                        {/* Fix 6: Manage Plan navigates */}
+                        <button
+                            onClick={() => navigate("/dashboard/subscription")}
+                            className="w-full py-3 rounded-xl font-semibold text-sm text-white
                             bg-gradient-to-r from-orange-500 to-orange-600 shadow-md shadow-orange-500/25
                             hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all duration-300">
                             {data?.subscription ? "Manage Plan" : "Get Started"}
