@@ -215,3 +215,77 @@ exports.getUserDashboardData = async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+// @desc    Get user profile
+// @route   GET /api/auth/profile
+exports.getProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id)
+            .select('name phone email address referralCode rewardPoints role createdAt');
+        if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+        res.status(200).json({ success: true, data: user });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+exports.updateProfile = async (req, res) => {
+    try {
+        const { name, email, address } = req.body;
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            { name, email, address },
+            { new: true, runValidators: true }
+        ).select('name phone email address referralCode rewardPoints');
+        res.status(200).json({ success: true, data: user });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+// @desc    Get referral info + referred users count
+// @route   GET /api/auth/referral
+exports.getReferralInfo = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id)
+            .select('referralCode rewardPoints referredBy');
+        const referredCount = await User.countDocuments({ referredBy: req.user._id });
+        res.status(200).json({
+            success: true,
+            data: {
+                referralCode: user.referralCode,
+                rewardPoints: user.rewardPoints,
+                referredCount,
+                referredBy: user.referredBy
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+// @desc    Get user's order history
+// @route   GET /api/auth/orders
+exports.getUserOrders = async (req, res) => {
+    try {
+        const orders = await DailyOrder.find({ userId: req.user._id })
+            .sort({ date: -1 })
+            .select('date planType selectedItem isSkipped deliveryStatus orderType createdAt');
+        res.status(200).json({ success: true, data: orders });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+// @desc    Get user's subscriptions
+// @route   GET /api/auth/subscriptions
+exports.getUserSubscriptions = async (req, res) => {
+    try {
+        const subscriptions = await Subscription.find({ userId: req.user._id })
+            .sort({ createdAt: -1 });
+        res.status(200).json({ success: true, data: subscriptions });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};

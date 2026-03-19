@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import bgImage from "../assets/bg-food.jpg";
+import API_BASE from "../config/api";
+
+
+const bgImage ="/Login_Page.jpg" ;
 
 export default function Login() {
   const navigate = useNavigate();
@@ -17,7 +20,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,13 +1,14 @@
 import { Link } from "react-router-dom";
+import { getImage } from "../config/cloudinary";
 import { useContext, useState } from "react";
 import { ThemeContext } from "../context/ThemeContext";
 
 // Meal photos array — replace src with your actual images
 const MEALS = [
-  { src: "/food-hero.jpg",       },
-  { src: "/meal-2.jpg",        },
-  { src: "/meal-3.jpg",                },
-  { src: "/meal-4.jpg",                },
+  { src: getImage("HERO_MEAL_1", "q_auto,f_auto,w_600")},
+  { src: getImage("HERO_MEAL_2", "q_auto,f_auto,w_600")},
+  { src: getImage("HERO_MEAL_3", "q_auto,f_auto,w_600")},
+  { src: getImage("HERO_MEAL_4", "q_auto,f_auto,w_600") },
 ];
 
 function StackedCards() {
@@ -136,7 +137,7 @@ function Hero() {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: `url('/food-hero.jpg')`,
+            backgroundImage: `url(${getImage("HERO_MEAL_1", "q_auto,f_auto,w_800")})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
             opacity: dark ? 0.06 : 0.09,

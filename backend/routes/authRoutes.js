@@ -1,13 +1,26 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, loginUser } = require('../controllers/authController');
+const {
+    registerUser, loginUser, updateUserRole,
+    getUserDashboardData, getProfile, updateProfile,
+    getReferralInfo, getUserOrders, getUserSubscriptions
+} = require('../controllers/authController');
 const { validateRegister, validateLogin } = require('../middleware/validator');
-const { updateUserRole, getUserDashboardData } = require('../controllers/authController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
-router.patch('/update-role', protect, admin, updateUserRole);
+// Public
 router.post('/register', validateRegister, registerUser);
 router.post('/login', validateLogin, loginUser);
-router.get('/dashboard', protect, getUserDashboardData);
+
+// Protected - User
+router.get('/dashboard',     protect, getUserDashboardData);
+router.get('/profile',       protect, getProfile);
+router.put('/profile',       protect, updateProfile);
+router.get('/referral',      protect, getReferralInfo);
+router.get('/orders',        protect, getUserOrders);
+router.get('/subscriptions', protect, getUserSubscriptions);
+
+// Admin only
+router.patch('/update-role', protect, admin, updateUserRole);
 
 module.exports = router;

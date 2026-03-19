@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { ThemeContext } from "../../context/ThemeContext";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
-import axios from "axios";
+import API_BASE from "../../config/api";
 import {
     ShoppingBag, CalendarCheck, Star,
     ArrowRight, UtensilsCrossed, Users, TrendingUp,
@@ -61,6 +61,7 @@ export default function Dashboard() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    // ── Get name from localStorage immediately ──
     const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
     const displayName = storedUser?.name?.split(" ")[0] || "there";
     const fullName = storedUser?.name || "User";
@@ -70,19 +71,22 @@ export default function Dashboard() {
     const greeting =
         hour >= 5  && hour < 12 ? "Good morning" :
         hour >= 12 && hour < 17 ? "Good afternoon" :
-        "Good evening";
+        hour >= 17 && hour < 21 ? "Good evening" :
+        "Good night";
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const token = localStorage.getItem("token");
                 if (!token) throw new Error("No token");
-                const res = await axios.get("http://localhost:5000/api/auth/dashboard", {
+                const res = await fetch(`${API_BASE}/api/auth/dashboard`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                setData(res.data.data);
+                const json = await res.json();
+                setData(json.data);
             } catch {
                 setData({
+                    // Fix 1: Use name from localStorage, not email
                     profile: { name: fullName, rewardPoints: 0 },
                     stats: { totalOrders: 0, weeklyOrdersChange: 0 },
                     subscription: null,
@@ -106,6 +110,7 @@ export default function Dashboard() {
         </DashboardLayout>
     );
 
+    // ── Fix 2: Removed Wallet, kept Reward Points ──
     const stats = [
         {
             label: "Total Orders",
@@ -149,6 +154,7 @@ export default function Dashboard() {
         },
     ];
 
+    // ── Fix 3: Removed "Track Order" (no backend), Fix 4: Removed "₹100 each" ──
     const quickActions = [
         {
             label: "Order Now",
@@ -173,7 +179,7 @@ export default function Dashboard() {
         },
         {
             label: "Refer Friends",
-            desc: "Earn reward points",   
+            desc: "Earn reward points",   // Fix 4: removed "₹100 each"
             icon: Users,
             image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=400&auto=format&fit=crop",
             path: "/dashboard/refer"
@@ -208,6 +214,7 @@ export default function Dashboard() {
                             <Flame className="w-3 h-3" />
                             Tadka Express
                         </div>
+                        {/* Fix 1: greeting uses time + name from localStorage (never email) */}
                         <h2 className={`text-3xl md:text-4xl font-bold tracking-tight mb-2 leading-tight ${dark ? "text-white" : "text-gray-900"}`}>
                             {greeting},<br />
                             <span className="text-orange-500">{displayName}.</span>
@@ -216,6 +223,7 @@ export default function Dashboard() {
                             Discover rich spices, authentic flavors, and the best meals delivered to your door.
                         </p>
                     </div>
+                    {/* Fix 6: Order button navigates to order page */}
                     <button
                         onClick={() => navigate("/dashboard/order")}
                         className="flex-shrink-0 flex items-center gap-2 px-6 py-3.5 rounded-2xl font-semibold text-sm text-white
@@ -228,10 +236,12 @@ export default function Dashboard() {
                 </div>
             </div>
 
+            {/* ── Stats Grid (Fix 6: each card is clickable) ── */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
                 {stats.map((s) => <StatCard key={s.label} {...s} dark={dark} />)}
             </div>
 
+            {/* ── Quick Actions (Fix 6: each card navigates) ── */}
             <div className="mb-7">
                 <div className="flex items-center justify-between mb-4 px-1">
                     <h3 className={`text-base font-semibold ${dark ? "text-white" : "text-gray-900"}`}>What are you craving?</h3>
@@ -269,10 +279,12 @@ export default function Dashboard() {
             {/* ── Bottom Grid ── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
+                {/* Recent Orders */}
                 <div className={`lg:col-span-2 rounded-2xl p-6
                     ${dark ? "bg-[#181818] border border-white/[0.07] shadow-xl shadow-black/40" : "bg-white border border-gray-100 shadow-lg shadow-gray-200/60"}`}>
                     <div className="flex items-center justify-between mb-5">
                         <h3 className={`text-base font-semibold ${dark ? "text-white" : "text-gray-900"}`}>Recent Orders</h3>
+                        {/* Fix 6: View all navigates */}
                         <button
                             onClick={() => navigate("/dashboard/orders")}
                             className={`text-xs font-medium ${dark ? "text-orange-400 hover:text-orange-300" : "text-orange-500 hover:text-orange-600"}`}>

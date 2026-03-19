@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import bgImage from "../assets/bg-food.jpg";
+import API_BASE from "../config/api";
 
+const bgImage = "/Login_Page.jpg"
 export default function Register() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
@@ -31,7 +32,7 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch(`${API_BASE}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -119,7 +120,7 @@ export default function Register() {
               <div>
                 <label className="block text-white text-sm mb-1">Full Name <span className="text-orange-400">*</span></label>
                 <input type="text" name="name" value={form.name} onChange={handleChange} required
-                  placeholder="Full Name"
+                  placeholder="e.g. Subhransu Tripathy"
                   className="w-full rounded-lg px-4 py-3 text-gray-800 text-sm outline-none focus:ring-2 focus:ring-orange-500"
                   style={{ background: "#e8e0d8" }} />
               </div>
@@ -161,6 +162,7 @@ export default function Register() {
             </form>
           )}
 
+          {/* ── Step 2: Address + Referral ── */}
           {step === 2 && (
             <form onSubmit={handleSubmit} className="space-y-4">
               <p className="text-white/60 text-xs text-center mb-2">Add your delivery address (can be updated later)</p>
