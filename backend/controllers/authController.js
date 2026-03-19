@@ -289,3 +289,29 @@ exports.getUserSubscriptions = async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+
+// @desc    Get all users (admin)
+// @route   GET /api/auth/admin/users
+exports.getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find({ role: 'user' })
+            .select('name phone email address referralCode rewardPoints createdAt')
+            .sort({ createdAt: -1 });
+        res.status(200).json({ success: true, count: users.length, data: users });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+// @desc    Get all subscriptions (admin)
+// @route   GET /api/auth/admin/subscriptions
+exports.getAllSubscriptions = async (req, res) => {
+    try {
+        const subs = await Subscription.find()
+            .populate('userId', 'name phone')
+            .sort({ createdAt: -1 });
+        res.status(200).json({ success: true, count: subs.length, data: subs });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};

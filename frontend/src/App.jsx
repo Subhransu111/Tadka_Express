@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useContext } from "react";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -7,14 +8,30 @@ import SubscriptionPage from "./pages/dashboard/Subscription";
 import ProfilePage from "./pages/dashboard/Profile";
 import ReferEarnPage from "./pages/dashboard/ReferEarn";
 import MyOrdersPage from "./pages/dashboard/MyOrders";
-import "./index.css";
-import { useContext } from "react";
-import { ThemeContext } from "./context/ThemeContext";
+import OrderFoodPage from "./pages/dashboard/OrderFood";
+import SupportPage from "./pages/dashboard/Support";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminDeliveries from "./pages/admin/AdminDeliveries";
+import AdminMenu from "./pages/admin/AdminMenu";
+import AdminSubscriptions from "./pages/admin/AdminSubscription";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminBanners from "./pages/admin/Adminbanners";
+import AdminSettings from "./pages/admin/AdminSettings";
 import DashboardLayout from "./components/dashboard/DashboardLayout";
+import { ThemeContext } from "./context/ThemeContext";
+import "./index.css";
 
 function PrivateRoute({ children }) {
     const token = localStorage.getItem("token");
     return token ? children : <Navigate to="/login" replace />;
+}
+
+function AdminRoute({ children }) {
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    if (!token) return <Navigate to="/login" replace />;
+    if (user.role !== "admin") return <Navigate to="/dashboard" replace />;
+    return children;
 }
 
 function ComingSoon({ title }) {
@@ -36,19 +53,27 @@ function App() {
     return (
         <Routes>
             {/* Public */}
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/"         element={<Home />} />
+            <Route path="/login"    element={<Login />} />
             <Route path="/register" element={<Register />} />
 
-            {/* Protected */}
+            {/* User Dashboard */}
             <Route path="/dashboard"                element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-            <Route path="/dashboard/subscription"   element={<PrivateRoute><SubscriptionPage /></PrivateRoute>} />
-            <Route path="/dashboard/profile"        element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-            <Route path="/dashboard/refer"          element={<PrivateRoute><ReferEarnPage /></PrivateRoute>} />
+            <Route path="/dashboard/order"          element={<PrivateRoute><OrderFoodPage /></PrivateRoute>} />
             <Route path="/dashboard/orders"         element={<PrivateRoute><MyOrdersPage /></PrivateRoute>} />
-            <Route path="/dashboard/order"          element={<PrivateRoute><ComingSoon title="Order Food" /></PrivateRoute>} />
-            <Route path="/dashboard/wallet"         element={<PrivateRoute><ComingSoon title="Wallet" /></PrivateRoute>} />
-            <Route path="/dashboard/support"        element={<PrivateRoute><ComingSoon title="Support" /></PrivateRoute>} />
+            <Route path="/dashboard/subscription"   element={<PrivateRoute><SubscriptionPage /></PrivateRoute>} />
+            <Route path="/dashboard/refer"          element={<PrivateRoute><ReferEarnPage /></PrivateRoute>} />
+            <Route path="/dashboard/profile"        element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+            <Route path="/dashboard/support"        element={<PrivateRoute><SupportPage /></PrivateRoute>} />
+
+            {/* Admin Dashboard */}
+            <Route path="/admin/dashboard"      element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/admin/deliveries"     element={<AdminRoute><AdminDeliveries /></AdminRoute>} />
+            <Route path="/admin/menu"           element={<AdminRoute><AdminMenu /></AdminRoute>} />
+            <Route path="/admin/subscriptions"  element={<AdminRoute><AdminSubscriptions /></AdminRoute>} />
+            <Route path="/admin/users"          element={<AdminRoute><AdminUsers /></AdminRoute>} />
+            <Route path="/admin/banners"        element={<AdminRoute><AdminBanners /></AdminRoute>} />
+            <Route path="/admin/settings"       element={<AdminRoute><AdminSettings /></AdminRoute>} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

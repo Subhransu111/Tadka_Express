@@ -9,7 +9,7 @@ exports.getDashboardStats = async (req, res) => {
         // 1. Calculate Total Revenue from Active/Expired subscriptions
         const revenueData = await Subscription.aggregate([
             { $match: { status: 'active' } },
-            { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+            { $group: { _id: null, total: { $sum: "$totalPrice" } } }
         ]);
 
         // 2. Count Active Users (Subscribed)

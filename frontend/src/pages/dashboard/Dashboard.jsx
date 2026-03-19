@@ -61,18 +61,15 @@ export default function Dashboard() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // ── Get name from localStorage immediately ──
     const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
     const displayName = storedUser?.name?.split(" ")[0] || "there";
     const fullName = storedUser?.name || "User";
 
-    // ── Fix 1: Proper time-based greeting ──
     const hour = new Date().getHours();
     const greeting =
         hour >= 5  && hour < 12 ? "Good morning" :
         hour >= 12 && hour < 17 ? "Good afternoon" :
-        hour >= 17 && hour < 21 ? "Good evening" :
-        "Good night";
+        "Good Evening";
 
     useEffect(() => {
         const fetchData = async () => {
@@ -86,7 +83,6 @@ export default function Dashboard() {
                 setData(json.data);
             } catch {
                 setData({
-                    // Fix 1: Use name from localStorage, not email
                     profile: { name: fullName, rewardPoints: 0 },
                     stats: { totalOrders: 0, weeklyOrdersChange: 0 },
                     subscription: null,
@@ -110,7 +106,6 @@ export default function Dashboard() {
         </DashboardLayout>
     );
 
-    // ── Fix 2: Removed Wallet, kept Reward Points ──
     const stats = [
         {
             label: "Total Orders",
@@ -154,7 +149,6 @@ export default function Dashboard() {
         },
     ];
 
-    // ── Fix 3: Removed "Track Order" (no backend), Fix 4: Removed "₹100 each" ──
     const quickActions = [
         {
             label: "Order Now",
@@ -179,7 +173,7 @@ export default function Dashboard() {
         },
         {
             label: "Refer Friends",
-            desc: "Earn reward points",   // Fix 4: removed "₹100 each"
+            desc: "Earn reward points",   
             icon: Users,
             image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=400&auto=format&fit=crop",
             path: "/dashboard/refer"

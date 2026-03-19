@@ -3,7 +3,8 @@ const router = express.Router();
 const {
     registerUser, loginUser, updateUserRole,
     getUserDashboardData, getProfile, updateProfile,
-    getReferralInfo, getUserOrders, getUserSubscriptions
+    getReferralInfo, getUserOrders, getUserSubscriptions,
+    getAllUsers, getAllSubscriptions
 } = require('../controllers/authController');
 const { validateRegister, validateLogin } = require('../middleware/validator');
 const { protect, admin } = require('../middleware/authMiddleware');
@@ -21,6 +22,8 @@ router.get('/orders',        protect, getUserOrders);
 router.get('/subscriptions', protect, getUserSubscriptions);
 
 // Admin only
-router.patch('/update-role', protect, admin, updateUserRole);
+router.patch('/update-role',          protect, admin, updateUserRole);
+router.get('/admin/users',            protect, admin, getAllUsers);
+router.get('/admin/subscriptions',    protect, admin, getAllSubscriptions);
 
 module.exports = router;

@@ -33,6 +33,8 @@ app.use('/api/subscriptions', require('./routes/subscriptionRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/banners', require('./routes/bannerRoutes'));
 app.use('/api/menu', require('./routes/menuRoutes'));
+app.use('/api/analytics', require('./routes/Analyticsroutes'));
+app.use('/api/settings', require('./routes/Settingsroutes'));
 
 app.use((req, res) => {
     res.status(404).json({ error: 'Route not found' });

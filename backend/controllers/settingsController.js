@@ -3,7 +3,7 @@ const Settings = require('../models/Settings');
 // @desc    Get global system settings
 // @route   GET /api/settings
 
-async function getSettings(req, res) {
+exports.getSettings = async function getSettings(req, res) {
     try{
         let settings = await Settings.findOne();
         if(!settings){
