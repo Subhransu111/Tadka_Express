@@ -120,7 +120,7 @@ export default function Register() {
               <div>
                 <label className="block text-white text-sm mb-1">Full Name <span className="text-orange-400">*</span></label>
                 <input type="text" name="name" value={form.name} onChange={handleChange} required
-                  placeholder="e.g. Subhransu Tripathy"
+                  
                   className="w-full rounded-lg px-4 py-3 text-gray-800 text-sm outline-none focus:ring-2 focus:ring-orange-500"
                   style={{ background: "#e8e0d8" }} />
               </div>

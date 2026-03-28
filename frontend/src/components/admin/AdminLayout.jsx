@@ -4,7 +4,7 @@ import { ThemeContext } from "../../context/ThemeContext";
 import {
     LayoutDashboard, UtensilsCrossed, CalendarCheck,
     Users, Image, Settings, LogOut, Flame, X, Menu,
-    Sun, Moon, ChevronDown, Bike
+    Sun, Moon, ChevronDown, Bike, Shield
 } from "lucide-react";
 
 const navItems = [
@@ -13,6 +13,7 @@ const navItems = [
     { label: "Subscriptions", icon: CalendarCheck,   path: "/admin/subscriptions" },
     { label: "Menu",          icon: UtensilsCrossed, path: "/admin/menu" },
     { label: "Users",         icon: Users,           path: "/admin/users" },
+    { label: "Manage Admins", icon: Shield,          path: "/admin/admins" },
     { label: "Banners",       icon: Image,           path: "/admin/banners" },
     { label: "Settings",      icon: Settings,        path: "/admin/settings" },
 ];

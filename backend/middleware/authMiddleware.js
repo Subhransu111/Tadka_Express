@@ -30,11 +30,19 @@ const protect = async (req, res, next) => {
 
 // Middleware to restrict access to Admins only
 const admin = (req, res, next) => {
-    if (req.user && req.user.role === 'admin') {
+    if (req.user && (req.user.role === 'admin' || req.user.role === 'superadmin')) {
         next();
     } else {
         res.status(403).json({ success: false, message: 'Not authorized as an admin' });
     }
 };
 
-module.exports = { protect, admin };
+const superadmin = (req, res, next) => {
+    if (req.user && req.user.role === 'superadmin') {
+        next();
+    } else {
+        res.status(403).json({ success: false, message: 'Not authorized as superadmin' });
+    }
+};
+
+module.exports = { protect, admin, superadmin };

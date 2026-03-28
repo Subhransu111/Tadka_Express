@@ -2,101 +2,194 @@ import { useState, useEffect, useContext } from "react";
 import { ThemeContext } from "../../context/ThemeContext";
 import AdminLayout from "../../components/admin/AdminLayout";
 import API_BASE from "../../config/api";
-import { CalendarCheck, Filter } from "lucide-react";
+import { Save, CheckCircle2 } from "lucide-react";
 
-const STATUS_COLORS = {
-    active:          { cls: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
-    expired:         { cls: "bg-gray-500/10 text-gray-400 border-gray-500/20" },
-    pending_payment: { cls: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-    cancelled:       { cls: "bg-red-500/10 text-red-400 border-red-500/20" },
-};
-
-export default function AdminSubscriptions() {
+export default function AdminSettings() {
     const { dark } = useContext(ThemeContext);
-    const [subs, setSubs] = useState([]);
+    const [form, setForm] = useState({
+        basicPerDay: 90,
+        deluxePerDay: 130,
+        royalMin: 140,
+        royalMax: 170,
+        whatsappStart: "16:00",
+        whatsappEnd: "22:00",
+        isServiceActive: true,
+    });
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState("all");
+    const [saving, setSaving] = useState(false);
+    const [saved, setSaved] = useState(false);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         const load = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const res = await fetch(`${API_BASE}/api/auth/admin/subscriptions`, {
+                const res = await fetch(`${API_BASE}/api/settings`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const data = await res.json();
-                if (data.success) setSubs(data.data || []);
+                if (data.success && data.settings) {
+                    const s = data.settings;
+                    setForm({
+                        basicPerDay:   s.pricing?.basicPerDay   ?? 90,
+                        deluxePerDay:  s.pricing?.deluxePerDay  ?? 130,
+                        royalMin:      s.pricing?.royalMin      ?? 140,
+                        royalMax:      s.pricing?.royalMax      ?? 170,
+                        whatsappStart: s.whatsappWindow?.startTime ?? "16:00",
+                        whatsappEnd:   s.whatsappWindow?.endTime   ?? "22:00",
+                        isServiceActive: s.isServiceActive ?? true,
+                    });
+                }
             } catch (err) { console.error(err); }
             finally { setLoading(false); }
         };
         load();
     }, []);
 
-    const filtered = filter === "all" ? subs : subs.filter(s => s.status === filter);
+    const handleSave = async () => {
+        setSaving(true); setError("");
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${API_BASE}/api/settings`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({
+                    pricing: {
+                        basicPerDay:  Number(form.basicPerDay),
+                        deluxePerDay: Number(form.deluxePerDay),
+                        royalMin:     Number(form.royalMin),
+                        royalMax:     Number(form.royalMax),
+                    },
+                    whatsappWindow: { startTime: form.whatsappStart, endTime: form.whatsappEnd },
+                    isServiceActive: form.isServiceActive,
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed");
+            setSaved(true);
+            setTimeout(() => setSaved(false), 3000);
+        } catch (err) { setError(err.message); }
+        finally { setSaving(false); }
+    };
+
     const card = dark ? "bg-[#181818] border border-white/[0.07]" : "bg-white border border-gray-100 shadow-sm";
+    const input = dark
+        ? "bg-white/[0.05] border-white/[0.08] text-gray-200 focus:border-orange-500/50"
+        : "bg-gray-50 border-gray-200 text-gray-800 focus:border-orange-400 focus:bg-white";
+
+    if (loading) return (
+        <AdminLayout>
+            <div className="flex justify-center min-h-[60vh] items-center">
+                <div className="w-8 h-8 border-[3px] border-orange-200 border-t-orange-500 rounded-full animate-spin" />
+            </div>
+        </AdminLayout>
+    );
 
     return (
         <AdminLayout>
-            <div className="flex items-center justify-between mb-6">
-                <h1 className={`text-xl font-bold ${dark ? "text-white" : "text-gray-900"}`}>
-                    Subscriptions <span className={`text-sm font-normal ${dark ? "text-gray-500" : "text-gray-400"}`}>({subs.length} total)</span>
-                </h1>
-            </div>
-
-            {/* Filters */}
-            <div className="flex gap-2 mb-5 flex-wrap items-center">
-                <Filter className={`w-4 h-4 ${dark ? "text-gray-500" : "text-gray-400"}`} />
-                {["all", "active", "pending_payment", "expired", "cancelled"].map(f => (
-                    <button key={f} onClick={() => setFilter(f)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition-all
-                            ${filter === f ? "bg-orange-500 text-white" : dark ? "bg-white/[0.06] text-gray-400 hover:bg-white/10" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
-                        {f.replace("_", " ")}
+            <div className="max-w-xl">
+                <div className="flex items-center justify-between mb-6">
+                    <h1 className={`text-xl font-bold ${dark ? "text-white" : "text-gray-900"}`}>Settings</h1>
+                    <button onClick={handleSave} disabled={saving}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white bg-orange-500 hover:bg-orange-400 disabled:opacity-60 transition-colors">
+                        <Save className="w-4 h-4" />
+                        {saving ? "Saving..." : "Save Changes"}
                     </button>
-                ))}
-            </div>
+                </div>
 
-            <div className={`rounded-2xl overflow-hidden ${card}`}>
-                {loading ? (
-                    <div className="flex justify-center py-12"><div className="w-8 h-8 border-[3px] border-orange-200 border-t-orange-500 rounded-full animate-spin" /></div>
-                ) : filtered.length === 0 ? (
-                    <div className="text-center py-12">
-                        <CalendarCheck className={`w-8 h-8 mx-auto mb-2 ${dark ? "text-gray-700" : "text-gray-300"}`} />
-                        <p className={`text-sm ${dark ? "text-gray-500" : "text-gray-400"}`}>No subscriptions found</p>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className={`text-[11px] font-bold uppercase tracking-wider ${dark ? "text-gray-500 border-b border-white/[0.06]" : "text-gray-400 border-b border-gray-100"}`}>
-                                    {["User", "Phone", "Plan", "Days", "Price", "Start", "End", "Status"].map(h => (
-                                        <th key={h} className="text-left px-4 py-3">{h}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filtered.map((sub, i) => {
-                                    const sc = STATUS_COLORS[sub.status] || STATUS_COLORS.pending_payment;
-                                    return (
-                                        <tr key={sub._id || i} className={`border-t transition-colors ${dark ? "border-white/[0.04] hover:bg-white/[0.02]" : "border-gray-50 hover:bg-gray-50"}`}>
-                                            <td className={`px-4 py-3 text-xs font-semibold ${dark ? "text-white" : "text-gray-900"}`}>{sub.userId?.name || "—"}</td>
-                                            <td className={`px-4 py-3 text-xs ${dark ? "text-gray-400" : "text-gray-500"}`}>{sub.userId?.phone || "—"}</td>
-                                            <td className={`px-4 py-3 text-xs capitalize font-medium ${dark ? "text-orange-400" : "text-orange-500"}`}>{sub.planType}</td>
-                                            <td className={`px-4 py-3 text-xs ${dark ? "text-gray-300" : "text-gray-600"}`}>{sub.totalDays}d ({sub.usedDays || 0} used)</td>
-                                            <td className={`px-4 py-3 text-xs font-semibold ${dark ? "text-white" : "text-gray-900"}`}>₹{sub.totalPrice}</td>
-                                            <td className={`px-4 py-3 text-xs ${dark ? "text-gray-400" : "text-gray-500"}`}>{new Date(sub.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</td>
-                                            <td className={`px-4 py-3 text-xs ${dark ? "text-gray-400" : "text-gray-500"}`}>{sub.endDate ? new Date(sub.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "—"}</td>
-                                            <td className="px-4 py-3">
-                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border capitalize ${sc.cls}`}>
-                                                    {sub.status.replace("_", " ")}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                {saved && (
+                    <div className="mb-4 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4" /> Settings saved! Pricing on the landing page will update automatically.
                     </div>
                 )}
+                {error && (
+                    <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>
+                )}
+
+                {/* Pricing */}
+                <div className={`rounded-2xl p-6 mb-4 ${card}`}>
+                    <h3 className={`text-sm font-bold mb-1 ${dark ? "text-white" : "text-gray-900"}`}>Pricing</h3>
+                    <p className={`text-xs mb-4 ${dark ? "text-gray-500" : "text-gray-400"}`}>
+                        Changes here reflect on the landing page pricing section automatically.
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                        {[
+                            { label: "Basic Plan (₹/day)",   key: "basicPerDay",  placeholder: "90" },
+                            { label: "Deluxe Plan (₹/day)",  key: "deluxePerDay", placeholder: "130" },
+                        ].map(({ label, key, placeholder }) => (
+                            <div key={key}>
+                                <label className={`text-xs font-semibold mb-1.5 block ${dark ? "text-gray-400" : "text-gray-500"}`}>{label}</label>
+                                <input type="number" value={form[key]} placeholder={placeholder}
+                                    onChange={e => setForm(f => ({...f, [key]: e.target.value}))}
+                                    className={`w-full px-4 py-2.5 rounded-xl text-sm border outline-none transition-all ${input}`} />
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Royal pricing — range */}
+                    <div className="mt-4">
+                        <label className={`text-xs font-semibold mb-1.5 block ${dark ? "text-gray-400" : "text-gray-500"}`}>
+                            Royal Plan Price Range (₹/day)
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="relative">
+                                <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-xs ${dark ? "text-gray-500" : "text-gray-400"}`}>Min</span>
+                                <input type="number" value={form.royalMin} placeholder="140"
+                                    onChange={e => setForm(f => ({...f, royalMin: e.target.value}))}
+                                    className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-sm border outline-none transition-all ${input}`} />
+                            </div>
+                            <div className="relative">
+                                <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-xs ${dark ? "text-gray-500" : "text-gray-400"}`}>Max</span>
+                                <input type="number" value={form.royalMax} placeholder="170"
+                                    onChange={e => setForm(f => ({...f, royalMax: e.target.value}))}
+                                    className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-sm border outline-none transition-all ${input}`} />
+                            </div>
+                        </div>
+                        <p className={`text-[11px] mt-1.5 ${dark ? "text-gray-600" : "text-gray-400"}`}>
+                            Royal plans have variable pricing based on the set selected (e.g. ₹140–170/day)
+                        </p>
+                    </div>
+                </div>
+
+                {/* WhatsApp window */}
+                <div className={`rounded-2xl p-6 mb-4 ${card}`}>
+                    <h3 className={`text-sm font-bold mb-1 ${dark ? "text-white" : "text-gray-900"}`}>WhatsApp Reminder Window</h3>
+                    <p className={`text-xs mb-4 ${dark ? "text-gray-500" : "text-gray-400"}`}>
+                        Deluxe & Royal users receive meal selection reminder in this window
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                        {[
+                            { label: "Start Time", key: "whatsappStart" },
+                            { label: "End Time",   key: "whatsappEnd" },
+                        ].map(({ label, key }) => (
+                            <div key={key}>
+                                <label className={`text-xs font-semibold mb-1.5 block ${dark ? "text-gray-400" : "text-gray-500"}`}>{label}</label>
+                                <input type="time" value={form[key]}
+                                    onChange={e => setForm(f => ({...f, [key]: e.target.value}))}
+                                    className={`w-full px-4 py-2.5 rounded-xl text-sm border outline-none transition-all ${input}`} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Service toggle */}
+                <div className={`rounded-2xl p-6 ${card}`}>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className={`text-sm font-bold ${dark ? "text-white" : "text-gray-900"}`}>Service Status</h3>
+                            <p className={`text-xs mt-0.5 ${dark ? "text-gray-500" : "text-gray-400"}`}>Toggle to pause all new orders</p>
+                        </div>
+                        <button onClick={() => setForm(f => ({...f, isServiceActive: !f.isServiceActive}))}
+                            className={`relative w-12 h-6 rounded-full transition-colors duration-300
+                                ${form.isServiceActive ? "bg-orange-500" : dark ? "bg-white/10" : "bg-gray-200"}`}>
+                            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-300
+                                ${form.isServiceActive ? "translate-x-6" : "translate-x-0.5"}`} />
+                        </button>
+                    </div>
+                    <p className={`text-xs mt-2 font-medium ${form.isServiceActive ? "text-emerald-400" : "text-red-400"}`}>
+                        Service is currently {form.isServiceActive ? "active" : "paused"}
+                    </p>
+                </div>
             </div>
             <div className="h-8" />
         </AdminLayout>

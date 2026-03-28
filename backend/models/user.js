@@ -31,7 +31,7 @@ const UserSchema = new mongoose.Schema({
     resetPasswordExpire: Date,
     role:{
         type:String,
-        enum:['user','admin'],
+        enum:['user','admin','superadmin'],
         default:'user'
     },
     address:{

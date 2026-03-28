@@ -8,7 +8,9 @@ const settingsSchema = new mongoose.Schema({
 
   pricing: {
     basicPerDay: { type: Number, default: 90 },
-    deluxePerDay: { type: Number, default: 130 }
+    deluxePerDay: { type: Number, default: 130 },
+    royalMin: { type: Number, default: 140 },
+    royalMax: { type: Number, default: 170 }
   },
 
   isServiceActive: { type: Boolean, default: true },
@@ -19,4 +21,3 @@ const settingsSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Settings', settingsSchema);
-

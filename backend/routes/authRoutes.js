@@ -7,7 +7,7 @@ const {
     getAllUsers, getAllSubscriptions
 } = require('../controllers/authController');
 const { validateRegister, validateLogin } = require('../middleware/validator');
-const { protect, admin } = require('../middleware/authMiddleware');
+const { protect, admin, superadmin } = require('../middleware/authMiddleware');
 
 // Public
 router.post('/register', validateRegister, registerUser);
@@ -22,7 +22,7 @@ router.get('/orders',        protect, getUserOrders);
 router.get('/subscriptions', protect, getUserSubscriptions);
 
 // Admin only
-router.patch('/update-role',          protect, admin, updateUserRole);
+router.patch('/update-role',          protect, superadmin, updateUserRole);
 router.get('/admin/users',            protect, admin, getAllUsers);
 router.get('/admin/subscriptions',    protect, admin, getAllSubscriptions);
 

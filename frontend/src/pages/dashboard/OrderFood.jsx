@@ -130,9 +130,9 @@ export default function OrderFoodPage() {
     return (
         <DashboardLayout>
             <div className="max-w-2xl mx-auto">
-                <h1 className={`text-xl font-bold mb-2 ${dark ? "text-white" : "text-gray-900"}`}>Order Food</h1>
+                <h1 className={`text-xl font-bold mb-2 ${dark ? "text-white" : "text-gray-900"}`}>Today's Meal</h1>
                 <p className={`text-sm mb-6 ${dark ? "text-gray-500" : "text-gray-400"}`}>
-                    Select your meal for <span className="text-orange-500 font-medium">{tomorrowStr}</span>
+                    {subscription?.planType === "basic" ? "Confirm or skip tomorrow's delivery" : "Select your meal for"} <span className="text-orange-500 font-medium">{tomorrowStr}</span>
                 </p>
 
                 {/* Success state */}
@@ -154,6 +154,17 @@ export default function OrderFoodPage() {
                     </div>
                 )}
 
+                {/* Info note for deluxe/royal users */}
+                {!success && subscription && subscription.planType !== "basic" && (
+                    <div className={`mb-4 px-4 py-3 rounded-xl text-xs flex items-start gap-2
+                        ${dark ? "bg-white/[0.03] border border-white/[0.06] text-gray-400" : "bg-orange-50 border border-orange-100 text-gray-600"}`}>
+                        <span className="flex-shrink-0 mt-0.5">💡</span>
+                        <span>
+                            <strong>Deluxe & Royal users</strong> — select tomorrow's meal before 10 PM. 
+                            You'll also get a WhatsApp reminder between 4–10 PM daily.
+                        </span>
+                    </div>
+                )}
                 {/* No subscription */}
                 {!success && !subscription && (
                     <div className={`rounded-2xl p-10 text-center ${card}`}>

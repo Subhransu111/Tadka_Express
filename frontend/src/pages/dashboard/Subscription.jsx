@@ -39,6 +39,25 @@ const PLANS = [
         notIncluded: [],
         badge: "Popular",
     },
+    {
+        id: "royal",
+        name: "Royal",
+        pricePerDay: 140, // minimum — sets range from 140-170
+        priceMax: 170,
+        color: "purple",
+        description: "7 rotating premium menus with extras",
+        features: [
+            "1 premium meal per day (you choose)",
+            "7 rotating premium sets",
+            "Special weekend menu",
+            "Dessert included",
+            "Daily WhatsApp reminder (4PM–10PM)",
+            "Skip any day",
+            "Priority + dedicated delivery",
+        ],
+        notIncluded: [],
+        badge: "Premium",
+    },
 ];
 
 const MIN_DAYS = 15;
@@ -141,7 +160,10 @@ export default function SubscriptionPage() {
 
     const totalDays = selectedDates.length;
     const plan = PLANS.find(p => p.id === selectedPlan);
+    // Royal uses min price for estimate (actual price varies per set chosen)
     const totalPrice = plan ? plan.pricePerDay * totalDays : 0;
+    const totalPriceMax = plan?.priceMax ? plan.priceMax * totalDays : totalPrice;
+    const isRoyal = plan?.id === "royal";
     const startDate = selectedDates[0];
     const endDate = selectedDates[selectedDates.length - 1];
 
@@ -240,7 +262,7 @@ export default function SubscriptionPage() {
             {/* ── Step 1: Plan Selection ── */}
             {step === 1 && (
                 <div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-7">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-7">
                         {PLANS.map((p) => {
                             const isSelected = selectedPlan === p.id;
                             return (
@@ -254,7 +276,8 @@ export default function SubscriptionPage() {
                                         ${dark ? "bg-[#181818]" : "bg-white"}
                                     `}>
                                     {p.badge && (
-                                        <span className="absolute top-4 right-4 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-500 text-white uppercase tracking-wider">
+                                        <span className={`absolute top-4 right-4 px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white uppercase tracking-wider
+                                            ${p.color === "purple" ? "bg-purple-500" : p.color === "violet" ? "bg-violet-500" : "bg-orange-500"}`}>
                                             {p.badge}
                                         </span>
                                     )}
@@ -356,7 +379,9 @@ export default function SubscriptionPage() {
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className={dark ? "text-gray-400" : "text-gray-500"}>Price/day</span>
-                                    <span className={`font-semibold ${dark ? "text-white" : "text-gray-900"}`}>₹{plan?.pricePerDay}</span>
+                                    <span className={`font-semibold ${dark ? "text-white" : "text-gray-900"}`}>
+                                        {plan?.id === "royal" ? `₹${plan.pricePerDay}–₹${plan.priceMax}` : `₹${plan?.pricePerDay}`}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className={dark ? "text-gray-400" : "text-gray-500"}>Days selected</span>
@@ -458,7 +483,7 @@ export default function SubscriptionPage() {
                             hover:shadow-orange-500/40 hover:-translate-y-0.5 disabled:opacity-60
                             transition-all duration-300 flex items-center justify-center gap-2">
                         <Zap className="w-5 h-5 fill-white" />
-                        {loading ? "Processing..." : `Pay ₹${totalPrice}`}
+                        {loading ? "Processing..." : isRoyal ? `Pay ₹${totalPrice}–₹${totalPriceMax}` : `Pay ₹${totalPrice}`}
                     </button>
 
                     <p className={`text-center text-xs mt-3 ${dark ? "text-gray-600" : "text-gray-400"}`}>

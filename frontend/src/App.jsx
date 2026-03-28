@@ -15,8 +15,9 @@ import AdminDeliveries from "./pages/admin/AdminDeliveries";
 import AdminMenu from "./pages/admin/AdminMenu";
 import AdminSubscriptions from "./pages/admin/AdminSubscription";
 import AdminUsers from "./pages/admin/AdminUsers";
-import AdminBanners from "./pages/admin/Adminbanners";
+import AdminBanners from "./pages/admin/AdminBanners";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminManageAdmins from "./pages/admin/AdminManageAdmins";
 import DashboardLayout from "./components/dashboard/DashboardLayout";
 import { ThemeContext } from "./context/ThemeContext";
 import "./index.css";
@@ -30,7 +31,7 @@ function AdminRoute({ children }) {
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     if (!token) return <Navigate to="/login" replace />;
-    if (user.role !== "admin") return <Navigate to="/dashboard" replace />;
+    if (user.role !== "admin" && user.role !== "superadmin") return <Navigate to="/dashboard" replace />;
     return children;
 }
 
@@ -74,6 +75,7 @@ function App() {
             <Route path="/admin/users"          element={<AdminRoute><AdminUsers /></AdminRoute>} />
             <Route path="/admin/banners"        element={<AdminRoute><AdminBanners /></AdminRoute>} />
             <Route path="/admin/settings"       element={<AdminRoute><AdminSettings /></AdminRoute>} />
+            <Route path="/admin/admins"         element={<AdminRoute><AdminManageAdmins /></AdminRoute>} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

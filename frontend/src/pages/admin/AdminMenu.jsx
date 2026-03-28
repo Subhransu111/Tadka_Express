@@ -2,10 +2,46 @@ import { useState, useEffect, useContext } from "react";
 import { ThemeContext } from "../../context/ThemeContext";
 import AdminLayout from "../../components/admin/AdminLayout";
 import API_BASE from "../../config/api";
-import { Plus, Pencil, Trash2, CheckCircle2, XCircle, X } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle2, XCircle, X, Download } from "lucide-react";
 
 const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 const PLANS = ["basic","deluxe","royal"];
+
+// ── Actual menu from the photo ──
+const SEED_MENU = [
+    // BASIC
+    { planType: "basic", optionNumber: 1, itemName: "Basic Daily Thali", price: 90,
+      components: ["Rice/Roti", "Dal/Dalfry/Dalma", "Seasonal Mix Veg/Chhole/Alu Gobi/Soyabean Curry", "Paneer/Mushroom", "Bundi Raita/Achar+Papad", "Ambula Rai/Salad"],
+      availableDays: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"] },
+
+    // DELUXE
+    { planType: "deluxe", optionNumber: 1, itemName: "Deluxe Daily Thali", price: 130,
+      components: ["Paneer/Mushroom/Egg/Chicken/Fish Curry", "Rice/Roti", "Dal/Dalfry/Dalma", "Seasonal Mix Veg/Chhole/Alu Gobi/Soyabean Curry", "Bundi Raita/Achar+Papad", "Ambula Rai/Salad"],
+      availableDays: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"] },
+
+    // ROYAL — 7 sets
+    { planType: "royal", optionNumber: 1, itemName: "Set 1 — Thali Special", price: 150,
+      components: ["Paneer/Mushroom/Egg/Chicken/Fish", "Rice/Ruti", "Dal/Dal-fry", "Mix Veg - Seasonal", "Bundi Raita", "Salad"],
+      availableDays: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"] },
+    { planType: "royal", optionNumber: 2, itemName: "Set 2 — Paratha Special", price: 140,
+      components: ["Alu Paratha", "Curd - Plain", "Mix Veg - Seasonal", "Achar", "Papad", "Salad"],
+      availableDays: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"] },
+    { planType: "royal", optionNumber: 3, itemName: "Set 3 — Bhature Special", price: 150,
+      components: ["Bhature", "Chole", "Lassi (Plain/Sabja/Mango) / Butter Milk / Coke", "Sweet", "Salad"],
+      availableDays: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"] },
+    { planType: "royal", optionNumber: 4, itemName: "Set 4 — Biryani Special", price: 160,
+      components: ["Biryani - Veg/Chicken", "Salan", "Coke", "Raita", "Salad"],
+      availableDays: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"] },
+    { planType: "royal", optionNumber: 5, itemName: "Set 5 — Chilly Special", price: 160,
+      components: ["Chilly - Paneer/Mushroom/Chicken", "Laccha Paratha 2pc / Tawa Ruti 4pc", "Coke", "Sweet", "Salad"],
+      availableDays: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"] },
+    { planType: "royal", optionNumber: 6, itemName: "Set 6 — Manchurian + Fried Rice", price: 165,
+      components: ["Gobi Manchurian / Chilly Chicken", "Fried Rice (Veg/Egg/Egg-Chicken)", "Coke", "Sweet", "Salad"],
+      availableDays: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"] },
+    { planType: "royal", optionNumber: 7, itemName: "Set 7 — Manchurian + Noodles", price: 170,
+      components: ["Gobi Manchurian / Chilly Chicken", "Noodles (Veg/Egg/Egg-Chicken)", "Coke", "Sweet", "Salad"],
+      availableDays: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"] },
+];
 
 function MenuModal({ item, onClose, onSave, dark }) {
     const [form, setForm] = useState({
@@ -42,10 +78,15 @@ function MenuModal({ item, onClose, onSave, dark }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className={`w-full max-w-md rounded-2xl p-6 ${dark ? "bg-[#1a1a1a] border border-white/[0.08]" : "bg-white border border-gray-100 shadow-2xl"}`}>
+            <div className={`w-full max-w-md rounded-2xl p-6 max-h-[90vh] overflow-y-auto
+                ${dark ? "bg-[#1a1a1a] border border-white/[0.08]" : "bg-white border border-gray-100 shadow-2xl"}`}>
                 <div className="flex items-center justify-between mb-5">
-                    <h3 className={`text-base font-bold ${dark ? "text-white" : "text-gray-900"}`}>{item ? "Edit Item" : "Add Menu Item"}</h3>
-                    <button onClick={onClose} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10 text-gray-400" : "hover:bg-gray-100 text-gray-500"}`}><X className="w-4 h-4" /></button>
+                    <h3 className={`text-base font-bold ${dark ? "text-white" : "text-gray-900"}`}>
+                        {item ? "Edit Item" : "Add Menu Item"}
+                    </h3>
+                    <button onClick={onClose} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10 text-gray-400" : "hover:bg-gray-100 text-gray-500"}`}>
+                        <X className="w-4 h-4" />
+                    </button>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
@@ -58,29 +99,35 @@ function MenuModal({ item, onClose, onSave, dark }) {
                         </div>
                         <div>
                             <label className={`text-xs font-semibold mb-1 block ${dark ? "text-gray-400" : "text-gray-500"}`}>Option #</label>
-                            <input type="number" min={1} value={form.optionNumber} onChange={e => setForm(f => ({...f, optionNumber: e.target.value}))}
+                            <input type="number" min={1} value={form.optionNumber}
+                                onChange={e => setForm(f => ({...f, optionNumber: e.target.value}))}
                                 className={`w-full px-3 py-2 rounded-xl text-sm border outline-none ${input}`} />
                         </div>
                     </div>
                     <div>
                         <label className={`text-xs font-semibold mb-1 block ${dark ? "text-gray-400" : "text-gray-500"}`}>Item Name *</label>
                         <input required value={form.itemName} onChange={e => setForm(f => ({...f, itemName: e.target.value}))}
-                            placeholder="e.g. Chicken Biryani"
+                            placeholder="e.g. Biryani Special"
                             className={`w-full px-3 py-2 rounded-xl text-sm border outline-none ${input}`} />
                     </div>
                     <div>
-                        <label className={`text-xs font-semibold mb-1 block ${dark ? "text-gray-400" : "text-gray-500"}`}>Components (comma separated) *</label>
-                        <input required value={form.components} onChange={e => setForm(f => ({...f, components: e.target.value}))}
-                            placeholder="Rice, Chicken curry, Salad, Pickle"
+                        <label className={`text-xs font-semibold mb-1 block ${dark ? "text-gray-400" : "text-gray-500"}`}>
+                            Components <span className="font-normal opacity-60">(comma separated)</span>
+                        </label>
+                        <textarea required value={form.components} rows={3}
+                            onChange={e => setForm(f => ({...f, components: e.target.value}))}
+                            placeholder="Rice, Dal, Paneer Curry, Salad..."
+                            className={`w-full px-3 py-2 rounded-xl text-sm border outline-none resize-none ${input}`} />
+                    </div>
+                    <div>
+                        <label className={`text-xs font-semibold mb-1 block ${dark ? "text-gray-400" : "text-gray-500"}`}>
+                            Price (₹) {form.planType !== "royal" && <span className="font-normal opacity-60">(auto-filled from settings)</span>}
+                        </label>
+                        <input type="number" value={form.price}
+                            onChange={e => setForm(f => ({...f, price: e.target.value}))}
+                            placeholder={form.planType === "basic" ? "90" : form.planType === "deluxe" ? "130" : "140-170"}
                             className={`w-full px-3 py-2 rounded-xl text-sm border outline-none ${input}`} />
                     </div>
-                    {form.planType === "royal" && (
-                        <div>
-                            <label className={`text-xs font-semibold mb-1 block ${dark ? "text-gray-400" : "text-gray-500"}`}>Price (₹)</label>
-                            <input type="number" value={form.price} onChange={e => setForm(f => ({...f, price: e.target.value}))}
-                                className={`w-full px-3 py-2 rounded-xl text-sm border outline-none ${input}`} />
-                        </div>
-                    )}
                     <div>
                         <label className={`text-xs font-semibold mb-2 block ${dark ? "text-gray-400" : "text-gray-500"}`}>Available Days</label>
                         <div className="flex flex-wrap gap-1.5">
@@ -98,10 +145,12 @@ function MenuModal({ item, onClose, onSave, dark }) {
                     </div>
                     <div className="flex gap-2 pt-2">
                         <button type="button" onClick={onClose}
-                            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold ${dark ? "bg-white/[0.06] text-gray-300 hover:bg-white/10" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+                            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors
+                                ${dark ? "bg-white/[0.06] text-gray-300 hover:bg-white/10" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
                             Cancel
                         </button>
-                        <button type="submit" className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white bg-orange-500 hover:bg-orange-400 transition-colors">
+                        <button type="submit"
+                            className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white bg-orange-500 hover:bg-orange-400 transition-colors">
                             {item ? "Save Changes" : "Add Item"}
                         </button>
                     </div>
@@ -116,8 +165,10 @@ export default function AdminMenu() {
     const [items, setItems] = useState([]);
     const [planFilter, setPlanFilter] = useState("basic");
     const [loading, setLoading] = useState(true);
-    const [modal, setModal] = useState(null); // null | "add" | item object
+    const [modal, setModal] = useState(null);
     const [error, setError] = useState("");
+    const [seeding, setSeeding] = useState(false);
+    const [seedSuccess, setSeedSuccess] = useState(false);
 
     const token = localStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
@@ -166,6 +217,27 @@ export default function AdminMenu() {
         } catch (err) { setError(err.message); }
     };
 
+    // Seed all menu items from the actual menu photo
+    const handleSeedMenu = async () => {
+        if (!window.confirm(`This will add ${SEED_MENU.length} menu items (Basic + Deluxe + 7 Royal sets) from your actual menu. Continue?`)) return;
+        setSeeding(true);
+        setError("");
+        let successCount = 0;
+        for (const item of SEED_MENU) {
+            try {
+                const res = await fetch(`${API_BASE}/api/menu`, {
+                    method: "POST", headers,
+                    body: JSON.stringify(item)
+                });
+                if (res.ok) successCount++;
+            } catch {}
+        }
+        setSeeding(false);
+        setSeedSuccess(true);
+        setTimeout(() => setSeedSuccess(false), 4000);
+        loadMenu(planFilter);
+    };
+
     const card = dark ? "bg-[#181818] border border-white/[0.07]" : "bg-white border border-gray-100 shadow-sm";
 
     return (
@@ -174,12 +246,43 @@ export default function AdminMenu() {
                 <MenuModal item={modal === "add" ? null : modal} onClose={() => setModal(null)} onSave={handleSave} dark={dark} />
             )}
 
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                 <h1 className={`text-xl font-bold ${dark ? "text-white" : "text-gray-900"}`}>Menu Management</h1>
-                <button onClick={() => setModal("add")}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white bg-orange-500 hover:bg-orange-400 transition-colors">
-                    <Plus className="w-4 h-4" /> Add Item
-                </button>
+                <div className="flex gap-2">
+                    {/* Seed from actual menu */}
+                    <button onClick={handleSeedMenu} disabled={seeding}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-colors
+                            ${dark ? "border-white/[0.08] text-gray-300 hover:bg-white/5" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+                        <Download className="w-4 h-4" />
+                        {seeding ? "Adding..." : "Load Menu from Photo"}
+                    </button>
+                    <button onClick={() => setModal("add")}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white bg-orange-500 hover:bg-orange-400 transition-colors">
+                        <Plus className="w-4 h-4" /> Add Item
+                    </button>
+                </div>
+            </div>
+
+            {seedSuccess && (
+                <div className="mb-4 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm">
+                    ✅ Menu loaded successfully! All items from your subscription plan are now added.
+                </div>
+            )}
+            {error && (
+                <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>
+            )}
+
+            {/* Info box about the menu */}
+            <div className={`rounded-xl p-4 mb-5 flex items-start gap-3 ${dark ? "bg-white/[0.03] border border-white/[0.06]" : "bg-orange-50 border border-orange-100"}`}>
+                <span className="text-lg flex-shrink-0">📋</span>
+                <div>
+                    <p className={`text-xs font-semibold ${dark ? "text-gray-300" : "text-gray-700"}`}>
+                        Your menu: Basic (₹90) · Deluxe (₹130) · Royal Set 1–7 (₹140–170)
+                    </p>
+                    <p className={`text-xs mt-0.5 ${dark ? "text-gray-500" : "text-gray-500"}`}>
+                        Click "Load Menu from Photo" to auto-fill all items from your subscription plan card, or add items manually.
+                    </p>
+                </div>
             </div>
 
             {/* Plan tabs */}
@@ -187,29 +290,57 @@ export default function AdminMenu() {
                 {PLANS.map(p => (
                     <button key={p} onClick={() => setPlanFilter(p)}
                         className={`px-4 py-2 rounded-xl text-sm font-semibold capitalize transition-all
-                            ${planFilter === p ? "bg-orange-500 text-white" : dark ? "bg-white/[0.06] text-gray-400 hover:bg-white/10" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
-                        {p}
+                            ${planFilter === p
+                                ? p === "royal" ? "bg-purple-500 text-white" : p === "deluxe" ? "bg-violet-500 text-white" : "bg-orange-500 text-white"
+                                : dark ? "bg-white/[0.06] text-gray-400 hover:bg-white/10" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            }`}>
+                        {p} {p === "royal" && "🎖️"}
                     </button>
                 ))}
             </div>
 
-            {error && <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>}
-
             {loading ? (
-                <div className="flex justify-center py-12"><div className="w-8 h-8 border-[3px] border-orange-200 border-t-orange-500 rounded-full animate-spin" /></div>
+                <div className="flex justify-center py-12">
+                    <div className="w-8 h-8 border-[3px] border-orange-200 border-t-orange-500 rounded-full animate-spin" />
+                </div>
             ) : items.length === 0 ? (
                 <div className={`rounded-2xl p-10 text-center ${card}`}>
-                    <p className={`text-sm ${dark ? "text-gray-500" : "text-gray-400"}`}>No {planFilter} menu items yet.</p>
-                    <button onClick={() => setModal("add")} className="mt-3 text-sm text-orange-500 hover:text-orange-400 font-medium">Add first item →</button>
+                    <p className={`text-sm mb-2 ${dark ? "text-gray-500" : "text-gray-400"}`}>
+                        No {planFilter} menu items yet.
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                        <button onClick={handleSeedMenu}
+                            className={`text-sm font-medium px-4 py-2 rounded-xl border transition-colors
+                                ${dark ? "border-white/10 text-gray-400 hover:bg-white/5" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}>
+                            Load from photo
+                        </button>
+                        <button onClick={() => setModal("add")}
+                            className="text-sm text-orange-500 hover:text-orange-400 font-medium px-4 py-2">
+                            Add manually →
+                        </button>
+                    </div>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {items.map(item => (
-                        <div key={item._id} className={`rounded-2xl p-4 ${card} ${!item.isAvailable ? "opacity-50" : ""}`}>
+                        <div key={item._id}
+                            className={`rounded-2xl p-4 transition-all ${card} ${!item.isAvailable ? "opacity-50" : ""}`}>
                             <div className="flex items-start justify-between gap-2 mb-2">
-                                <div>
-                                    <p className={`text-sm font-bold ${dark ? "text-white" : "text-gray-900"}`}>{item.itemName}</p>
-                                    {item.price && <p className="text-xs text-orange-500 font-semibold">₹{item.price}</p>}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-0.5">
+                                        {item.optionNumber && (
+                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded
+                                                ${dark ? "bg-white/[0.06] text-gray-400" : "bg-gray-100 text-gray-500"}`}>
+                                                #{item.optionNumber}
+                                            </span>
+                                        )}
+                                        <p className={`text-sm font-bold truncate ${dark ? "text-white" : "text-gray-900"}`}>
+                                            {item.itemName}
+                                        </p>
+                                    </div>
+                                    {item.price && (
+                                        <p className="text-xs font-bold text-orange-500">₹{item.price}</p>
+                                    )}
                                 </div>
                                 <div className="flex gap-1 flex-shrink-0">
                                     <button onClick={() => handleToggle(item)} title={item.isAvailable ? "Disable" : "Enable"}
@@ -218,20 +349,27 @@ export default function AdminMenu() {
                                             ? <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                                             : <XCircle className="w-4 h-4 text-red-400" />}
                                     </button>
-                                    <button onClick={() => setModal(item)} className={`p-1.5 rounded-lg transition-colors ${dark ? "hover:bg-white/10 text-gray-400" : "hover:bg-gray-100 text-gray-500"}`}>
+                                    <button onClick={() => setModal(item)}
+                                        className={`p-1.5 rounded-lg transition-colors ${dark ? "hover:bg-white/10 text-gray-400" : "hover:bg-gray-100 text-gray-500"}`}>
                                         <Pencil className="w-3.5 h-3.5" />
                                     </button>
-                                    <button onClick={() => handleDelete(item._id)} className={`p-1.5 rounded-lg transition-colors ${dark ? "hover:bg-red-500/10 text-gray-500 hover:text-red-400" : "hover:bg-red-50 text-gray-400 hover:text-red-500"}`}>
+                                    <button onClick={() => handleDelete(item._id)}
+                                        className={`p-1.5 rounded-lg transition-colors ${dark ? "hover:bg-red-500/10 text-gray-500 hover:text-red-400" : "hover:bg-red-50 text-gray-400 hover:text-red-500"}`}>
                                         <Trash2 className="w-3.5 h-3.5" />
                                     </button>
                                 </div>
                             </div>
                             {item.components?.length > 0 && (
-                                <p className={`text-xs mb-2 ${dark ? "text-gray-500" : "text-gray-400"}`}>{item.components.join(" · ")}</p>
+                                <p className={`text-xs leading-relaxed mb-2 ${dark ? "text-gray-500" : "text-gray-400"}`}>
+                                    {item.components.join(" · ")}
+                                </p>
                             )}
                             <div className="flex flex-wrap gap-1">
                                 {item.availableDays?.map(d => (
-                                    <span key={d} className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${dark ? "bg-white/[0.06] text-gray-500" : "bg-gray-100 text-gray-400"}`}>{d.slice(0,3)}</span>
+                                    <span key={d} className={`text-[10px] px-1.5 py-0.5 rounded font-medium
+                                        ${dark ? "bg-white/[0.06] text-gray-500" : "bg-gray-100 text-gray-400"}`}>
+                                        {d.slice(0,3)}
+                                    </span>
                                 ))}
                             </div>
                         </div>

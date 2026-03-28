@@ -294,7 +294,7 @@ exports.getUserSubscriptions = async (req, res) => {
 // @route   GET /api/auth/admin/users
 exports.getAllUsers = async (req, res) => {
     try {
-        const users = await User.find({ role: 'user' })
+        const users = await User.find({})
             .select('name phone email address referralCode rewardPoints createdAt')
             .sort({ createdAt: -1 });
         res.status(200).json({ success: true, count: users.length, data: users });

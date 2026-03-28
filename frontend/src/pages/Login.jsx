@@ -1,15 +1,16 @@
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import API_BASE from "../config/api";
 
-
-const bgImage ="/Login_Page.jpg" ;
-
+const bgImage = "/Login_Page.jpg";
 export default function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ phone: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(true);
+  const [failedAttempts, setFailedAttempts] = useState(0);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -43,7 +44,7 @@ export default function Login() {
         referralCode: data.referralCode,
       }));
 
-      if (data.role === "admin") {
+      if (data.role === "admin" || data.role === "superadmin") {
         navigate("/admin/dashboard");
       } else {
         navigate("/dashboard");
@@ -51,6 +52,9 @@ export default function Login() {
 
     } catch (err) {
       setError(err.message);
+      const newAttempts = failedAttempts + 1;
+      setFailedAttempts(newAttempts);
+      if (newAttempts >= 2) setShowPassword(false);
     } finally {
       setLoading(false);
     }
@@ -108,14 +112,28 @@ export default function Login() {
 
             <div>
               <label className="block text-white text-sm mb-1">Password</label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                className="w-full rounded-lg px-4 py-3 text-gray-800 text-sm outline-none focus:ring-2 focus:ring-orange-500"
-                style={{ background: "#d6cfc7" }}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "password" : "text"}
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  className="w-full rounded-lg px-4 py-3 pr-11 text-gray-800 text-sm outline-none focus:ring-2 focus:ring-orange-500"
+                  style={{ background: "#d6cfc7" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {failedAttempts >= 2 && (
+                <p className="text-[11px] text-amber-500 mt-1">
+                  Password hidden after multiple failed attempts. Click the eye icon to show.
+                </p>
+              )}
               <div className="text-right mt-1">
                 <button type="button" className="text-orange-400 text-xs hover:underline">
                   Forgot Password?
