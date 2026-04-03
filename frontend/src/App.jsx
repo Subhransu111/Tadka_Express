@@ -18,7 +18,7 @@ import AdminSubscriptions from "./pages/admin/AdminSubscription";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminBanners from "./pages/admin/AdminBanners";
 import AdminSettings from "./pages/admin/AdminSettings";
-import AdminManageAdmins from "./pages/admin/AdminManageAdmins";
+import AdminManageAdmins from "./pages/admin/AdminmanageAdmins";
 import DashboardLayout from "./components/dashboard/DashboardLayout";
 import { ThemeContext } from "./context/ThemeContext";
 import "./index.css";
