@@ -8,7 +8,7 @@ const subscriptionSchema = new mongoose.Schema({
     },
     planType:{
         type: String,
-        enum: ['basic', 'deluxe'],
+        enum: ['basic', 'deluxe', 'royal'],
         required: true
     },
     startDate:{
@@ -42,7 +42,9 @@ const subscriptionSchema = new mongoose.Schema({
         enum: ['active', 'expired', 'pending_payment','cancelled'],
         default: 'pending_payment'
     },
-razorpayOrderId: { type: String }
+razorpayOrderId: { type: String },
+skipCount: { type: Number, default: 0 },
+MAX_SKIPS: { type: Number, default: 2 }
 }, { timestamps: true });
 
 subscriptionSchema.pre('save', async function() {

@@ -1,62 +1,47 @@
-const Subscription = require('../models/Subscription')
+const Subscription = require('../models/Subscription');
+const Settings = require('../models/Settings');
 const Razorpay = require('razorpay');
-const crypto = require('crypto')
+const crypto = require('crypto');
 
-/*const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
-});
-*/
+async function createSubscription(req, res) {
+    try {
+        const { planType, totalDays, startDate } = req.body;
 
-async function createSubscription(req, res){
-    try{
-        const { planType , totalDays , startDate } = req.body
-
-        // Validate required fields
         if (!planType || !totalDays || !startDate) {
-            return res.status(400).json({ 
-                error: 'Missing required fields: planType, totalDays, startDate' 
-            });
+            return res.status(400).json({ error: 'Missing required fields: planType, totalDays, startDate' });
         }
 
-        // Validate plan type
-        if (!['basic', 'deluxe'].includes(planType)) {
-            return res.status(400).json({ 
-                error: 'Invalid planType. Must be "basic" or "deluxe"' 
-            });
+        if (!['basic', 'deluxe', 'royal'].includes(planType)) {
+            return res.status(400).json({ error: 'Invalid planType. Must be "basic", "deluxe" or "royal"' });
         }
 
-        // Validate total days
         if (totalDays < 15) {
             return res.status(400).json({ error: 'Total days must be at least 15' });
         }
 
-        // Parse and validate start date
         const parsedStartDate = new Date(startDate);
-        
-        
         if (isNaN(parsedStartDate.getTime())) {
-            return res.status(400).json({ 
-                error: 'Invalid startDate format. Use ISO format (e.g., 2026-03-04)' 
-            });
+            return res.status(400).json({ error: 'Invalid startDate format.' });
         }
 
-        const pricePerDay = planType === 'basic' ? 90:130;
-        const totalPrice = pricePerDay * totalDays;
+        // Fetch live pricing from Settings
+        let settings = await Settings.findOne();
+        if (!settings) settings = await Settings.create({});
 
-        const options = {
-            amount : totalPrice * 100,
-            currency: 'INR',
-            receipt: `receipt_${Date.now()}`
-        };
+        const pricing = settings.pricing || {};
+
+            const pricePerDay =
+            planType === 'basic'   ? (pricing.basicPerDay  || 90)  :
+            planType === 'deluxe'  ? (pricing.deluxePerDay || 130) :
+            /* royal */              (pricing.royalMin     || 140);
+
+        const totalPrice = pricePerDay * totalDays;
 
         const mockOrder = {
             id: `fake_order_${Date.now()}`,
             amount: totalPrice * 100,
             currency: 'INR'
         };
-
-        // TODO: Integrate real Razorpay payment when service is active
 
         const subscription = await Subscription.create({
             userId: req.user._id,
@@ -67,61 +52,41 @@ async function createSubscription(req, res){
             totalPrice,
             razorpayOrderId: mockOrder.id,
             status: 'pending_payment'
-
         });
 
-        
-
         res.status(201).json({ subscription, order: mockOrder });
-    }
-    catch(error){
-        
-        res.status(500).json({ 
+    } catch (error) {
+        res.status(500).json({
             error: 'Failed to create subscription',
             details: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
-
     }
-};
+}
 
 exports.createSubscription = createSubscription;
 
-// @desc    Cancel subscription (Stop future service)
-// @route   PUT /api/subscriptions/cancel/:id
 exports.cancelSubscription = async (req, res) => {
     try {
         const subscription = await Subscription.findById(req.params.id);
-
-        if (!subscription) {
-            return res.status(404).json({ success: false, message: "Subscription not found" });
-        }
-
-        // Verify ownership 
+        if (!subscription) return res.status(404).json({ success: false, message: 'Subscription not found' });
         if (subscription.userId.toString() !== req.user._id.toString()) {
-            return res.status(401).json({ success: false, message: "Not authorized" });
+            return res.status(401).json({ success: false, message: 'Not authorized' });
         }
-
-        // Update status
         subscription.status = 'cancelled';
         await subscription.save();
-
-        res.status(200).json({ 
-            success: true, 
-            message: "Subscription cancelled. Access will remain until the 15 days are completed." 
-        });
+        res.status(200).json({ success: true, message: 'Subscription cancelled.' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 };
 
-async function verifyPayment(req,res) {
-        const {razorpay_order_id , razorpay_payment_id , razorpay_signature} = req.body
-
-        const dataToVerify = razorpay_order_id + "|" + razorpay_payment_id;
-        const generated_signature = crypto
-        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET) // Use the "Secret Sauce"
+async function verifyPayment(req, res) {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const dataToVerify = razorpay_order_id + '|' + razorpay_payment_id;
+    const generated_signature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'dev_secret')
         .update(dataToVerify.toString())
-        .digest("hex");
+        .digest('hex');
 
     if (generated_signature === razorpay_signature) {
         const subscription = await Subscription.findOneAndUpdate(
@@ -129,14 +94,10 @@ async function verifyPayment(req,res) {
             { status: 'active' },
             { new: true }
         );
-        res.status(200).json({ success: true, message: "Verification Successful", subscription });
+        res.status(200).json({ success: true, message: 'Verification Successful', subscription });
     } else {
-        res.status(400).json({ success: false, message: "Signature mismatch! Possible fraud detected." });
+        res.status(400).json({ success: false, message: 'Signature mismatch!' });
     }
 }
 
 exports.verifyPayment = verifyPayment;
-        
-
-
-    

@@ -22,6 +22,12 @@ const menuSchema = new mongoose.Schema({
     trim: true 
   }],
 
+    // Each component can have its own subOptions stored here
+  subOptions: [{
+    componentIndex: { type: Number }, // which component index has choices
+    choices: [{ type: String, trim: true }] // the individual options
+  }],
+
   price: { 
     type: Number, 
     required: function() { return this.planType === 'royal'; } 
@@ -43,4 +49,3 @@ const menuSchema = new mongoose.Schema({
 menuSchema.index({ planType: 1, isAvailable: 1 });
 
 module.exports = mongoose.model('Menu', menuSchema);
-

@@ -1,14 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const { 
-    updateMealSection, 
-    getAdminDeliveryList, 
-    getKitchenSummary 
+const {
+    updateMealSection,
+    getUpcomingMeal,
+    getAdminDeliveryList,
+    getKitchenSummary,
+    getSkippedMeals
 } = require('../controllers/orderControllers');
 const { protect, admin } = require('../middleware/authMiddleware');
 
-router.patch('/select-meal', protect, updateMealSection);
-router.get('/admin/delivery/:date', protect, admin, getAdminDeliveryList);
-router.get('/admin/summary/:date', protect, admin, getKitchenSummary);
+// User routes
+router.patch('/select-meal',              protect, updateMealSection);
+router.get('/upcoming',                   protect, getUpcomingMeal);
+
+// Admin routes
+router.get('/admin/delivery/:date',       protect, admin, getAdminDeliveryList);
+router.get('/admin/summary/:date',        protect, admin, getKitchenSummary);
+router.get('/admin/skipped/:date',        protect, admin, getSkippedMeals);
 
 module.exports = router;

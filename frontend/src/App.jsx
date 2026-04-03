@@ -8,7 +8,7 @@ import SubscriptionPage from "./pages/dashboard/Subscription";
 import ProfilePage from "./pages/dashboard/Profile";
 import ReferEarnPage from "./pages/dashboard/ReferEarn";
 import MyOrdersPage from "./pages/dashboard/MyOrders";
-import OrderFoodPage from "./pages/dashboard/OrderFood";
+import UpcomingMealPage from "./pages/dashboard/UpcomingMeal";
 import SupportPage from "./pages/dashboard/Support";
 import MenuPage from "./pages/dashboard/Menu";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -61,7 +61,7 @@ function App() {
 
             {/* User Dashboard */}
             <Route path="/dashboard"                element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-            <Route path="/dashboard/order"          element={<PrivateRoute><OrderFoodPage /></PrivateRoute>} />
+            <Route path="/dashboard/order"          element={<PrivateRoute><UpcomingMealPage /></PrivateRoute>} />
             <Route path="/dashboard/orders"         element={<PrivateRoute><MyOrdersPage /></PrivateRoute>} />
             <Route path="/dashboard/subscription"   element={<PrivateRoute><SubscriptionPage /></PrivateRoute>} />
             <Route path="/dashboard/refer"          element={<PrivateRoute><ReferEarnPage /></PrivateRoute>} />

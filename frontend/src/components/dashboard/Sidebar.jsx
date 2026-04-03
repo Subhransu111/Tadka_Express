@@ -9,7 +9,7 @@ import {
 
 const navItems = [
     { label: "Dashboard",    icon: LayoutDashboard, path: "/dashboard" },
-    { label: "Today's Meal", icon: UtensilsCrossed, path: "/dashboard/order" },
+    { label: "Upcoming Meal", icon: UtensilsCrossed, path: "/dashboard/order" },
     { label: "My Orders",    icon: ClipboardList,   path: "/dashboard/orders" },
     { label: "Menu",         icon: BookOpen,        path: "/dashboard/menu" },
     { label: "Refer & Earn", icon: Gift,            path: "/dashboard/refer" },

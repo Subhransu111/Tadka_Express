@@ -21,7 +21,7 @@ const dailyOrderSchema = new mongoose.Schema({
   },
 
   // For Royal: User selects 1 of 7 sets. For Deluxe: User selects protein.
-  selectedItem: { type: String, required: true }, 
+  selectedItem: { type: String, required: false, default: 'chef_choice' }, 
   
   isSkipped: { type: Boolean, default: false },
   
@@ -42,4 +42,3 @@ const dailyOrderSchema = new mongoose.Schema({
 dailyOrderSchema.index({ userId: 1, date: 1 }, { unique: true });
 
 module.exports = mongoose.model('DailyOrder', dailyOrderSchema);
-
