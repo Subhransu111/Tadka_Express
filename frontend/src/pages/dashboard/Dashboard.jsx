@@ -75,8 +75,7 @@ export default function Dashboard() {
     const greeting =
         hour >= 5  && hour < 12 ? "Good morning" :
         hour >= 12 && hour < 17 ? "Good afternoon" :
-        hour >= 17 && hour < 21 ? "Good evening" :
-        "Good night";
+        "Good evening";
 
     useEffect(() => {
         const fetchData = async () => {
