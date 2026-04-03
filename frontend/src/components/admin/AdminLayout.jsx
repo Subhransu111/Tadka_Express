@@ -10,7 +10,6 @@ import {
 const navItems = [
     { label: "Dashboard",     icon: LayoutDashboard, path: "/admin/dashboard" },
     { label: "Deliveries",    icon: Bike,            path: "/admin/deliveries" },
-    { label: "Subscriptions", icon: CalendarCheck,   path: "/admin/subscriptions" },
     { label: "Menu",          icon: UtensilsCrossed, path: "/admin/menu" },
     { label: "Users",         icon: Users,           path: "/admin/users" },
     { label: "Manage Admins", icon: Shield,          path: "/admin/admins" },

@@ -101,3 +101,12 @@ async function verifyPayment(req, res) {
 }
 
 exports.verifyPayment = verifyPayment;
+
+exports.getAllSubscriptions = async (req, res) => {
+    try {
+        const subscriptions = await Subscription.find().populate('userId', 'name email phone');
+        res.status(200).json({ success: true, data: subscriptions });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};

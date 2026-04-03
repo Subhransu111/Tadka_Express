@@ -82,6 +82,7 @@ export default function AdminDeliveries() {
                     {[
                         { label: "Basic Meals",   value: summary.basic || 0,                               color: "text-orange-500" },
                         { label: "Deluxe Meals",  value: Object.values(summary.deluxe || {}).reduce((a,b) => a+b, 0), color: "text-violet-500" },
+                        { label: "Royal Meals",   value: Object.values(summary.royal || {}).reduce((a,b) => a+b, 0), color: "text-amber-500" },
                         { label: "Skipped",       value: orders.filter(o => o.isSkipped).length,           color: "text-red-400" },
                         { label: "Total",         value: orders.length,                                    color: "text-emerald-500" },
                     ].map(({ label, value, color }) => (
