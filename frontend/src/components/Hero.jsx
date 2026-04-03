@@ -5,8 +5,7 @@ import { Search, MapPin } from "lucide-react";
 
 // Food bowl image — Unsplash (replace with Cloudinary later)
 const BOWL_IMG = "https://images.unsplash.com/photo-1547592180-85f173990554?q=80&w=800&auto=format&fit=crop";
-const BG_FOOD  = "https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=1200&auto=format&fit=crop";
-
+const BG_FOOD  = "/Login_Page.jpg";
 function Hero() {
   const { dark } = useContext(ThemeContext);
 
@@ -17,7 +16,7 @@ function Hero() {
       {/* ── LEFT ghost bg image ── */}
       {!dark && (
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-cover bg-center opacity-10"
+          <div className="absolute inset-0 bg-cover bg-center opacity-20"
             style={{ backgroundImage: `url('${BG_FOOD}')` }} />
           <div className="absolute inset-0 bg-gradient-to-r from-[#f5f9f0]/60 via-[#f5f9f0]/40 to-transparent" />
         </div>

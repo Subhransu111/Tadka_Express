@@ -10,6 +10,7 @@ import ReferEarnPage from "./pages/dashboard/ReferEarn";
 import MyOrdersPage from "./pages/dashboard/MyOrders";
 import OrderFoodPage from "./pages/dashboard/OrderFood";
 import SupportPage from "./pages/dashboard/Support";
+import MenuPage from "./pages/dashboard/Menu";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminDeliveries from "./pages/admin/AdminDeliveries";
 import AdminMenu from "./pages/admin/AdminMenu";
@@ -66,6 +67,7 @@ function App() {
             <Route path="/dashboard/refer"          element={<PrivateRoute><ReferEarnPage /></PrivateRoute>} />
             <Route path="/dashboard/profile"        element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
             <Route path="/dashboard/support"        element={<PrivateRoute><SupportPage /></PrivateRoute>} />
+            <Route path="/dashboard/menu"           element={<PrivateRoute><MenuPage /></PrivateRoute>} />
 
             {/* Admin Dashboard */}
             <Route path="/admin/dashboard"      element={<AdminRoute><AdminDashboard /></AdminRoute>} />

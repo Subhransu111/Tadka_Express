@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ThemeContext } from "../../context/ThemeContext";
 import {
     LayoutDashboard, UtensilsCrossed, ClipboardList,
-    Gift, User, HeadphonesIcon,
+    Gift, User, HeadphonesIcon, BookOpen,
     LogOut, X, Flame,
 } from "lucide-react";
 
@@ -11,6 +11,7 @@ const navItems = [
     { label: "Dashboard",    icon: LayoutDashboard, path: "/dashboard" },
     { label: "Today's Meal", icon: UtensilsCrossed, path: "/dashboard/order" },
     { label: "My Orders",    icon: ClipboardList,   path: "/dashboard/orders" },
+    { label: "Menu",         icon: BookOpen,        path: "/dashboard/menu" },
     { label: "Refer & Earn", icon: Gift,            path: "/dashboard/refer" },
     { label: "Profile",      icon: User,            path: "/dashboard/profile" },
     { label: "Support",      icon: HeadphonesIcon,  path: "/dashboard/support" },

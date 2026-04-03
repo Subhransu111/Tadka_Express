@@ -404,9 +404,18 @@ export default function SubscriptionPage() {
                                     </>
                                 )}
                                 <div className={`border-t pt-3 ${dark ? "border-white/10" : "border-gray-100"}`}>
-                                    <div className="flex justify-between">
-                                        <span className={`font-bold ${dark ? "text-white" : "text-gray-900"}`}>Total</span>
-                                        <span className="font-extrabold text-orange-500 text-lg">₹{totalPrice}</span>
+                                    <div className="flex justify-between items-start">
+                                        <span className={`font-bold ${dark ? "text-white" : "text-gray-900"}`}>
+                                            {isRoyal ? "Est. Total" : "Total"}
+                                        </span>
+                                        <div className="text-right">
+                                            <span className="font-extrabold text-orange-500 text-lg">
+                                                {isRoyal ? `₹${totalPrice}–₹${totalPriceMax}` : `₹${totalPrice}`}
+                                            </span>
+                                            {isRoyal && (
+                                                <p className="text-[10px] text-gray-500 mt-0.5">Based on set chosen daily</p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -440,7 +449,9 @@ export default function SubscriptionPage() {
                                     </div>
                                     <div>
                                         <p className={`text-sm font-semibold capitalize ${dark ? "text-white" : "text-gray-900"}`}>{plan?.name} Plan</p>
-                                        <p className={`text-xs ${dark ? "text-gray-500" : "text-gray-400"}`}>₹{plan?.pricePerDay}/day</p>
+                                        <p className={`text-xs ${dark ? "text-gray-500" : "text-gray-400"}`}>
+                                            {isRoyal ? `₹${plan?.pricePerDay}–₹${plan?.priceMax}/day` : `₹${plan?.pricePerDay}/day`}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -458,17 +469,39 @@ export default function SubscriptionPage() {
                             ))}
 
                             <div className={`border-t pt-4 ${dark ? "border-white/10" : "border-gray-100"}`}>
-                                <div className="flex justify-between items-center">
-                                    <span className={`font-bold ${dark ? "text-white" : "text-gray-900"}`}>Total Amount</span>
-                                    <span className="text-2xl font-extrabold text-orange-500">₹{totalPrice}</span>
+                                <div className="flex justify-between items-start">
+                                    <span className={`font-bold ${dark ? "text-white" : "text-gray-900"}`}>
+                                        {isRoyal ? "Est. Total" : "Total Amount"}
+                                    </span>
+                                    <div className="text-right">
+                                        <span className="text-2xl font-extrabold text-orange-500">
+                                            {isRoyal ? `₹${totalPrice}–₹${totalPriceMax}` : `₹${totalPrice}`}
+                                        </span>
+                                        {isRoyal && (
+                                            <p className="text-[11px] text-gray-500 mt-0.5">Varies by set chosen</p>
+                                        )}
+                                    </div>
                                 </div>
-                                <p className={`text-xs mt-1 ${dark ? "text-gray-500" : "text-gray-400"}`}>
-                                    Inclusive of all taxes
-                                </p>
+                                {!isRoyal && (
+                                    <p className={`text-xs mt-1 ${dark ? "text-gray-500" : "text-gray-400"}`}>
+                                        Inclusive of all taxes
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
 
+                    {/* Royal note */}
+                    {isRoyal && (
+                        <div className={`rounded-xl p-4 mb-4 flex items-start gap-3 ${dark ? "bg-purple-500/5 border border-purple-500/20" : "bg-purple-50 border border-purple-100"}`}>
+                            <Info className="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" />
+                            <p className={`text-xs leading-relaxed ${dark ? "text-purple-300" : "text-purple-700"}`}>
+                                <strong>Royal Plan:</strong> Price varies per set (₹{plan?.pricePerDay}–₹{plan?.priceMax}/day).
+                                You select your set daily via WhatsApp. The estimated total shown is based on the minimum price.
+                                Exact billing is calculated per day based on your selection.
+                            </p>
+                        </div>
+                    )}
                     {/* Razorpay note */}
                     <div className={`rounded-xl p-4 mb-5 flex items-start gap-3 ${dark ? "bg-white/[0.03] border border-white/[0.06]" : "bg-blue-50 border border-blue-100"}`}>
                         <Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
