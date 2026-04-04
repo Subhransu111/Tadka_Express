@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import API_BASE from "../config/api";
+import { img } from "../config/cloudinary";
 
-const bgImage = "/Login_Page.jpg";
+const bgImage = img("BG_AUTH");
 export default function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ phone: "", password: "" });

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ThemeContext } from "../../context/ThemeContext";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import API_BASE from "../../config/api";
+import { img, imgUrl } from "../../config/cloudinary";
 import {
     ShoppingBag, CalendarCheck, Star,
     ArrowRight, UtensilsCrossed, Users, TrendingUp,
@@ -75,7 +76,8 @@ export default function Dashboard() {
     const greeting =
         hour >= 5  && hour < 12 ? "Good morning" :
         hour >= 12 && hour < 17 ? "Good afternoon" :
-        "Good evening";
+        hour >= 17 && hour < 21 ? "Good evening" :
+        "Good night";
 
     useEffect(() => {
         const fetchData = async () => {
@@ -157,34 +159,33 @@ export default function Dashboard() {
         },
     ];
 
-    // ── Fix 3: Removed "Track Order" (no backend), Fix 4: Removed "₹100 each" ──
     const quickActions = [
         {
             label: "Today's Meal",
             desc: "Select or skip tomorrow",
             icon: ChefHat,
-            image: "https://images.unsplash.com/photo-1589302168068-964664d93cb0?q=80&w=400&auto=format&fit=crop",
+            image: img("ACTION_UPCOMING_MEAL"),
             path: "/dashboard/order"
         },
         {
             label: "My Orders",
             desc: "Your delivery history",
             icon: ShoppingBag,
-            image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=400&auto=format&fit=crop",
+            image: img("ACTION_MY_ORDERS"),
             path: "/dashboard/orders"
         },
         {
             label: "View Menu",
             desc: "Explore cuisines",
             icon: UtensilsCrossed,
-            image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400&auto=format&fit=crop",
+            image: img("ACTION_MENU"),
             path: "/dashboard/order"
         },
         {
             label: "Refer Friends",
             desc: "Earn reward points",   // Fix 4: removed "₹100 each"
             icon: Users,
-            image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=400&auto=format&fit=crop",
+            image: img("ACTION_REFER"),
             path: "/dashboard/refer"
         },
     ];
@@ -216,7 +217,7 @@ export default function Dashboard() {
                     : "bg-white border border-orange-100 shadow-xl shadow-orange-100/50"
                 }`}>
                 <div className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: "url('https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=2000&auto=format&fit=crop')" }} />
+                    style={{ backgroundImage: imgUrl("DASHBOARD_WELCOME_BG") }} />
                 <div className={`absolute inset-0 ${dark
                     ? "bg-gradient-to-r from-[#181818] via-[#181818]/96 to-[#181818]/55"
                     : "bg-gradient-to-r from-white via-white/96 to-white/55"}`} />
@@ -352,7 +353,7 @@ export default function Dashboard() {
                     ${dark ? "bg-[#181818] border border-white/[0.07] shadow-xl shadow-black/40" : "bg-white border border-gray-100 shadow-lg shadow-gray-200/60"}`}>
                     <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-br from-orange-500 to-red-500 rounded-b-[3rem]" />
                     <div className="absolute top-0 left-0 right-0 h-28 bg-cover bg-center opacity-20 rounded-b-[3rem]"
-                        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1596797038530-2c107229654b?q=80&w=600&auto=format&fit=crop')" }} />
+                        style={{ backgroundImage: imgUrl("DASHBOARD_SUBSCRIPTION_BG") }} />
                     <div className="absolute top-4 right-4 w-16 h-16 rounded-full bg-orange-300 blur-2xl opacity-40" />
 
                     <div className="relative z-10 p-6">

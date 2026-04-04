@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
+import { img } from "../config/cloudinary";
 import { useContext } from "react";
 import { ThemeContext } from "../context/ThemeContext";
 
 import { Leaf, UtensilsCrossed, Timer, ShieldCheck } from "lucide-react";
-const FOOD_IMG = "https://images.unsplash.com/photo-1596797038530-2c107229654b?q=80&w=800&auto=format&fit=crop";
+const FOOD_IMG = img("ABOUT_KITCHEN");
 
 const AboutUs = () => {
   const { dark } = useContext(ThemeContext);

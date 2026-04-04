@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { ThemeContext } from "../../context/ThemeContext";
 import AdminLayout from "../../components/admin/AdminLayout";
 import API_BASE from "../../config/api";
-import { ChevronLeft, ChevronRight, Bike, CheckCircle2, Clock, Package, UtensilsCrossed } from "lucide-react";
+import { ChevronLeft, ChevronRight, Bike, CheckCircle2, Clock, Package, UtensilsCrossed, Download } from "lucide-react";
 
 function StatusBadge({ status, dark }) {
     const cfg = {
@@ -21,6 +21,7 @@ export default function AdminDeliveries() {
     const [orders, setOrders] = useState([]);
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [pdfLoading, setPdfLoading] = useState(false);
     const [filter, setFilter] = useState("all");
 
     useEffect(() => {
@@ -46,6 +47,38 @@ export default function AdminDeliveries() {
         load();
     }, [date]);
 
+    const handleDownloadPDF = async () => {
+        setPdfLoading(true);
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${API_BASE}/api/orders/admin/kitchen-pdf/${date}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            if (!res.ok) {
+                const error = await res.json();
+                alert(error.message || 'Failed to generate PDF');
+                setPdfLoading(false);
+                return;
+            }
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `kitchen-${date}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (err) {
+            console.error(err);
+            alert('Error downloading PDF');
+        } finally {
+            setPdfLoading(false);
+        }
+    };
+
     const changeDate = (days) => {
         const d = new Date(date);
         d.setDate(d.getDate() + days);
@@ -62,16 +95,31 @@ export default function AdminDeliveries() {
         <AdminLayout>
             <div className="flex items-center justify-between mb-6">
                 <h1 className={`text-xl font-bold ${dark ? "text-white" : "text-gray-900"}`}>Deliveries</h1>
-                {/* Date navigator */}
-                <div className={`flex items-center gap-2 rounded-xl p-1 ${dark ? "bg-white/[0.05]" : "bg-gray-100"}`}>
-                    <button onClick={() => changeDate(-1)} className={`p-1.5 rounded-lg transition-colors ${dark ? "hover:bg-white/10 text-gray-400" : "hover:bg-white text-gray-500"}`}>
-                        <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <span className={`text-sm font-semibold px-2 min-w-[120px] text-center ${dark ? "text-white" : "text-gray-900"}`}>
-                        {new Date(date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                    </span>
-                    <button onClick={() => changeDate(1)} className={`p-1.5 rounded-lg transition-colors ${dark ? "hover:bg-white/10 text-gray-400" : "hover:bg-white text-gray-500"}`}>
-                        <ChevronRight className="w-4 h-4" />
+                {/* Date navigator + Download Button */}
+                <div className="flex items-center gap-3">
+                    <div className={`flex items-center gap-2 rounded-xl p-1 ${dark ? "bg-white/[0.05]" : "bg-gray-100"}`}>
+                        <button onClick={() => changeDate(-1)} className={`p-1.5 rounded-lg transition-colors ${dark ? "hover:bg-white/10 text-gray-400" : "hover:bg-white text-gray-500"}`}>
+                            <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <span className={`text-sm font-semibold px-2 min-w-[120px] text-center ${dark ? "text-white" : "text-gray-900"}`}>
+                            {new Date(date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                        </span>
+                        <button onClick={() => changeDate(1)} className={`p-1.5 rounded-lg transition-colors ${dark ? "hover:bg-white/10 text-gray-400" : "hover:bg-white text-gray-500"}`}>
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    </div>
+                    <button
+                        onClick={handleDownloadPDF}
+                        disabled={pdfLoading || orders.length === 0}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all ${
+                            dark
+                                ? "bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                                : "bg-orange-50 text-orange-600 hover:bg-orange-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        }`}
+                        title={orders.length === 0 ? "No orders to download" : "Download kitchen PDF"}
+                    >
+                        <Download className="w-4 h-4" />
+                        {pdfLoading ? "Generating..." : "Download PDF"}
                     </button>
                 </div>
             </div>

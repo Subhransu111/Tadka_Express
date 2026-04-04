@@ -1,5 +1,7 @@
 const DailyOrder = require('../models/DailyOrder');
 const Subscription = require('../models/Subscription');
+const Menu = require('../models/Menu');
+const PDFDocument = require('pdfkit');
 
 const normalizeDate = (date) => {
     const d = new Date(date);
@@ -171,6 +173,115 @@ exports.getKitchenSummary = async (req, res) => {
 
         res.status(200).json({ success: true, data: formattedSummary });
     } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+// @desc    Admin: Generate kitchen PDF for all pending deliveries
+// @route   GET /api/orders/admin/kitchen-pdf/:date
+exports.generateKitchenPDF = async (req, res) => {
+    try {
+        const queryDate = normalizeDate(req.params.date);
+        
+        // Fetch all pending/preparing orders (exclude skipped and delivered)
+        const orders = await DailyOrder.find({
+            date: queryDate,
+            isSkipped: false,
+            deliveryStatus: { $nin: ['delivered', 'skipped'] }
+        }).populate('userId', 'name phone address').sort({ planType: 1, 'userId.name': 1 });
+
+        if (orders.length === 0) {
+            return res.status(404).json({ success: false, message: 'No pending orders for this date' });
+        }
+
+        // Create PDF document
+        const doc = new PDFDocument({ margin: 30, size: 'A4' });
+        
+        // Set response headers
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="kitchen-${queryDate.toISOString().split('T')[0]}.pdf"`);
+        
+        // Pipe to response
+        doc.pipe(res);
+
+        // Header
+        doc.fontSize(24).font('Helvetica-Bold').text('TADKA EXPRESS - KITCHEN ORDERS', { align: 'center' });
+        doc.fontSize(10).font('Helvetica').text(`Date: ${queryDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`, { align: 'center' });
+        doc.fontSize(10).text(`Total Orders: ${orders.length}`, { align: 'center' });
+        doc.moveDown(0.5);
+        
+        // Separator line
+        doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
+        doc.moveDown(0.5);
+
+        // Group orders by plan type
+        const groupedByPlan = {};
+        orders.forEach(order => {
+            if (!groupedByPlan[order.planType]) {
+                groupedByPlan[order.planType] = [];
+            }
+            groupedByPlan[order.planType].push(order);
+        });
+
+        const planOrder = ['basic', 'deluxe', 'royal'];
+        let orderNumber = 1;
+
+        for (const plan of planOrder) {
+            if (!groupedByPlan[plan]) continue;
+
+            // Plan type header
+            doc.fontSize(14).font('Helvetica-Bold').fillColor('#FF6B35');
+            const planLabel = plan.charAt(0).toUpperCase() + plan.slice(1) + ' Plan';
+            doc.text(`${planLabel} (${groupedByPlan[plan].length} orders)`, { underline: true });
+            doc.fillColor('black');
+            doc.moveDown(0.3);
+
+            for (const order of groupedByPlan[plan]) {
+                // Order box
+                doc.fontSize(10).font('Helvetica-Bold');
+                doc.text(`#${orderNumber} - ${order.userId.name}`, { underline: true });
+                
+                doc.fontSize(9).font('Helvetica');
+                doc.text(`Phone: ${order.userId.phone || 'N/A'}`);
+                doc.text(`Address: ${order.userId.address || 'N/A'}`);
+                
+                // Menu item details
+                const menuItem = await Menu.findOne({
+                    planType: order.planType,
+                    itemName: order.selectedItem
+                });
+
+                if (menuItem) {
+                    doc.font('Helvetica-Bold').text(`Dish: ${menuItem.itemName}`);
+                    if (menuItem.components && menuItem.components.length > 0) {
+                        doc.font('Helvetica').fontSize(8);
+                        doc.text('Components:', { indent: 10 });
+                        menuItem.components.forEach((component, idx) => {
+                            doc.text(`• ${component}`, { indent: 20 });
+                        });
+                    }
+                } else {
+                    doc.font('Helvetica-Bold').text(`Dish: ${order.selectedItem || 'Chef\'s Choice'}`);
+                }
+
+                doc.moveDown(0.2);
+                doc.fontSize(8).text('─'.repeat(80));
+                doc.moveDown(0.2);
+                orderNumber++;
+            }
+
+            doc.moveDown(0.3);
+        }
+
+        // Footer
+        doc.moveDown(1);
+        doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
+        doc.fontSize(8).text(`Generated on: ${new Date().toLocaleString('en-IN')}`, { align: 'center' });
+        doc.text('Please ensure all orders are prepared as per the menu items and components listed above.', { align: 'center' });
+
+        doc.end();
+    } catch (error) {
+        console.error(error);
         res.status(500).json({ success: false, error: error.message });
     }
 };

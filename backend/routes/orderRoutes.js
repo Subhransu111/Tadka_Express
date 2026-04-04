@@ -5,7 +5,8 @@ const {
     getUpcomingMeal,
     getAdminDeliveryList,
     getKitchenSummary,
-    getSkippedMeals
+    getSkippedMeals,
+    generateKitchenPDF
 } = require('../controllers/orderControllers');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -17,5 +18,6 @@ router.get('/upcoming',                   protect, getUpcomingMeal);
 router.get('/admin/delivery/:date',       protect, admin, getAdminDeliveryList);
 router.get('/admin/summary/:date',        protect, admin, getKitchenSummary);
 router.get('/admin/skipped/:date',        protect, admin, getSkippedMeals);
+router.get('/admin/kitchen-pdf/:date',    protect, admin, generateKitchenPDF);
 
 module.exports = router;

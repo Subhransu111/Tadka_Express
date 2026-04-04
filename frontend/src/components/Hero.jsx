@@ -2,9 +2,10 @@ import { Link } from "react-router-dom";
 import { useContext } from "react";
 import { ThemeContext } from "../context/ThemeContext";
 import { Search, MapPin } from "lucide-react";
+import { img } from "../config/cloudinary";
 
 // Food bowl image — Unsplash (replace with Cloudinary later)
-const BOWL_IMG = "https://images.unsplash.com/photo-1547592180-85f173990554?q=80&w=800&auto=format&fit=crop";
+const BOWL_IMG = img("HERO_BOWL");
 const BG_FOOD  = "/Login_Page.jpg";
 function Hero() {
   const { dark } = useContext(ThemeContext);
@@ -97,21 +98,21 @@ function Hero() {
             {/* Top-right floating food image */}
             <div className="absolute -top-20 -right-30 w-50 h-50 rounded-full overflow-hidden shadow-2xl"
               style={{ border: "3px solid rgba(255,255,255,0.3)" }}>
-              <img src="https://images.unsplash.com/photo-1631452180519-c014fe946bc7?q=80&w=200&auto=format&fit=crop"
+              <img src={img("HERO_FLOAT_1")}
                 alt="Dal" className="w-full h-full object-cover" />
             </div>
  
             {/* Bottom-left floating food image */}
             <div className="absolute -bottom-6 -left-40 w-50 h-50 rounded-full overflow-hidden shadow-2xl"
               style={{ border: "3px solid rgba(255,255,255,0.3)" }}>
-              <img src="https://images.unsplash.com/photo-1585937421612-70a008356fbe?q=80&w=200&auto=format&fit=crop"
+              <img src={img("HERO_FLOAT_2")}
                 alt="Biryani" className="w-full h-full object-cover" />
             </div>
  
             {/* Bottom-right floating food image */}
             <div className="absolute -bottom-10 -right-22 w-40 h-40 rounded-full overflow-hidden shadow-2xl"
               style={{ border: "3px solid rgba(255,255,255,0.3)" }}>
-              <img src="https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?q=80&w=200&auto=format&fit=crop"
+              <img src={img("HERO_FLOAT_3")}
                 alt="Curry" className="w-full h-full object-cover" />
             </div>
  

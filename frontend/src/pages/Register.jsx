@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API_BASE from "../config/api";
+import { img } from "../config/cloudinary";
 
-const bgImage = "/Login_Page.jpg"
+const bgImage = img("BG_AUTH");
 export default function Register() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
